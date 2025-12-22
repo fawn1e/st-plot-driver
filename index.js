@@ -38,7 +38,13 @@ function loadSettings() {
 // ========== ЗАКРЫТЬ POPUP ==========
 function closePopup() {
     const popup = document.getElementById("fawn-popup");
-    if (popup) popup.remove();
+    if (popup) {
+        popup.remove();
+        // Удаляем обработчик ESC
+        document.removeEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closePopup();
+        });
+    }
     document.body.style.overflow = '';
 }
 
@@ -84,12 +90,12 @@ function updateMenuState() {
     const clearOocOption = document.getElementById("fawn-clear-ooc-option");
     
     if (lastOocOption) {
-        lastOocOption.style.display = lastGeneratedOOC ? "block" : "none";
+        lastOocOption.style.display = lastGeneratedOOC ? "flex" : "none";
     }
     
     if (clearOocOption) {
         const hasActiveOOC = checkActiveOOCPrompt();
-        clearOocOption.style.display = hasActiveOOC ? "block" : "none";
+        clearOocOption.style.display = hasActiveOOC ? "flex" : "none";
     }
 }
 
@@ -110,7 +116,7 @@ function checkActiveOOCPrompt() {
     return false;
 }
 
-// ========== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ POPUP ==========
+// ========== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ POPUP (ИСПРАВЛЕННАЯ) ==========
 function createPopup(content, width = "500px") {
     closePopup();
     
@@ -1059,6 +1065,16 @@ eventSource.on(event_types.MESSAGE_SWIPED, function() {
     clearPlotPrompt();
     updateMenuState();
 });
+
+// ========== ДЕБАГ ФУНКЦИЯ ==========
+function debugMenuState() {
+    console.log('=== Fawn Plot Driver Debug ===');
+    console.log('lastGeneratedOOC:', lastGeneratedOOC);
+    console.log('hasActiveOOC:', checkActiveOOCPrompt());
+    console.log('Last OOC element:', document.getElementById("fawn-last-ooc-option"));
+    console.log('Clear OOC element:', document.getElementById("fawn-clear-ooc-option"));
+    console.log('=============================');
+}
 
 // ========== ЗАПУСК ==========
 jQuery(() => {
