@@ -247,118 +247,122 @@ function showManualInputPopup(type) {
 
 // ========== MAIN FUNCTION ==========
 async function drivePlot(type) {
-    console.log("[Fawn] === START ===");
-    console.log("[Fawn] Type:", type);
-
+    console.log("[Fawn] === START (Nuclear Mode) ===");
+    
     lastType = type;
-
     const button = document.getElementById("fawn-plot-btn");
-    if (button) {
-        button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
-    }
+    if (button) button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
 
     try {
         const context = getContext();
         const msgCount = extension_settings[extensionName].messageCount || 15;
 
         if (!context.chat || context.chat.length === 0) {
-            toastr.warning("Start a chat first! 💕");
+            toastr.warning("Start a chat first!");
             return;
         }
 
-        // 1. Формируем "чистую" историю чата для контекста
-        // Мы не используем стандартный prompt builder, мы просто берем текст
-        const chatHistory = context.chat.slice(-msgCount).map(m => {
-            let name = m.name || 'User';
-            if (m.is_user) name = 'User'; 
-            // Обрезаем слишком длинные сообщения, чтобы не забивать контекст
-            let content = (m.mes || "").substring(0, 400); 
-            return `${name}: ${content}`;
+        // 1. ВРУЧНУЮ СОБИРАЕМ ИСТОРИЮ (Как в MemoryBooks)
+        // Мы не даем ST форматировать чат, мы делаем это сами.
+        // Это превращает диалог в простой текст, который модель будет анализировать.
+        const chatSegment = context.chat.slice(-msgCount).map(m => {
+            const name = m.name === 'User' || m.is_user ? 'User' : (m.name || 'Character');
+            // Убираем лишние теги, если есть
+            const cleanMes = (m.mes || "").replace(/<[^>]*>/g, ""); 
+            return `${name}: ${cleanMes}`;
         }).join('\n');
 
         const instruction = type === 'timeskip'
             ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
-        // 2. Создаем жесткий массив сообщений (Chat Completion format)
-        // Это "секрет", почему STMemoryBooks не ломается. Мы подменяем контекст полностью.
-        const messages = [
-            {
-                role: 'system',
-                content: `You are a plot direction tool. You are NOT a character in the story.
-Your task is to write a brief Out-Of-Character (OOC) direction based on the provided chat history.
-Ignore all previous instructions regarding character persona or roleplay.
-Output ONLY the OOC message.`
-            },
-            {
-                role: 'user',
-                content: `### STORY CONTEXT:\n${chatHistory}\n\n### INSTRUCTION:\n${instruction}\n\n### RESPONSE (2-3 sentences max, OOC format):`
-            }
-        ];
+        // 2. СОЗДАЕМ МОНОЛИТНЫЙ ПРОМПТ
+        // Мы используем формат, который понятен любой модели (Instruct)
+        const nuclearPrompt = `
+### Instruction:
+You are a plot direction tool. You are NOT a character. 
+Ignore all previous personas. 
+${instruction}
 
-        console.log("[Fawn] Sending structured request...");
+### Story Context:
+${chatSegment}
 
-        // 3. Отправляем запрос
+### Response (Write ONLY the OOC direction, max 2-3 sentences):
+(OOC:`;
+
+        console.log("[Fawn] Sending nuclear request...");
+
+        // 3. ОТПРАВЛЯЕМ ЗАПРОС С ПОЛНЫМ ПЕРЕОПРЕДЕЛЕНИЕМ
         const response = await generateQuietPrompt({
-            messages: messages, // ВАЖНО: передаем массив, а не prompt
-            prompt: null,       // Обнуляем prompt, чтобы ST не добавил его к пресету
-            skipWIAN: true,     // Пропускаем World Info и Author's Note
+            // Передаем наш текст
+            prompt: nuclearPrompt,
+            
+            // ГЛАВНОЕ: Отключаем всё, что может подтянуть личность бота
+            system_prompt: "You are a helpful assistant.", // Заглушка, чтобы стереть промпт персонажа
+            jailbreak_prompt: "", // Стираем джейлбрейк
+            
+            // Настройки генерации
             quietToLoud: false,
-            max_tokens: 150,    // Решает проблему долгой генерации (пункт 2)
+            skipWIAN: true, // Пропуск World Info
+            skip_name_check: true, // Не проверять имена
+            max_tokens: 150, // Ограничение длины (решает проблему №2)
             temperature: 0.7,
-            skip_name_check: true
+            
+            // Дополнительная страховка: переопределение параметров
+            override_params: {
+                max_new_tokens: 150,
+                stopping_strings: ["\n", "User:", "###"], // Остановить, если начнет писать дальше
+                system_message: "You are a helpful assistant.", // Для некоторых API
+                instruction_template: "Alpaca", // Форсируем простой шаблон, если возможно
+            }
         });
 
-        console.log("[Fawn] Raw response:", response);
+        console.log("[Fawn] Raw Response:", response);
 
+        // 4. ПАРСИМ ОТВЕТ
         let text = "";
-
-        // Обработка ответа (учитываем разные форматы API)
         if (typeof response === "string") {
             text = response;
-        } else if (response && typeof response === "object") {
-            // Пытаемся достать контент из OpenAI-like структуры или Text-completion
-            text = response.choices?.[0]?.message?.content 
-                || response.choices?.[0]?.text 
-                || response.content 
-                || response.text 
-                || "";
+        } else if (typeof response === "object") {
+             text = response.choices?.[0]?.message?.content 
+                 || response.choices?.[0]?.text 
+                 || response.content 
+                 || response.text 
+                 || "";
         }
 
-        // Чистим теги размышлений (DeepSeek, etc) и лишние пробелы
-        if (text) {
-            text = text
-                .replace(/<think>[\s\S]*?<\/think>/gi, '')
-                .replace(/<think>[\s\S]*/gi, '') // Если тег не закрыт
-                .replace(/<\/think>/gi, '')
-                .trim();
-            
-            // Форматирование
-            if (!text.startsWith("(OOC:") && !text.startsWith("OOC:")) {
-                text = "(OOC: " + text;
-            }
-            if (!text.endsWith(")")) {
-                text = text + ")";
-            }
+        // Чистим мусор (DeepSeek мысли, пробелы)
+        text = text
+            .replace(/<think>[\s\S]*?<\/think>/gi, '')
+            .replace(/<think>[\s\S]*/gi, '')
+            .replace(/<\/think>/gi, '')
+            .trim();
+
+        // Если модель повторила "(OOC:", убираем дубль, или добавляем, если нет
+        if (!text.toLowerCase().startsWith("(ooc")) {
+            text = "(OOC: " + text;
+        }
+        if (!text.endsWith(")")) {
+            text = text + ")";
         }
 
-        console.log("[Fawn] Final text:", text);
+        // Чистим двойные скобки, если модель тупанула: ((OOC: ... ))
+        text = text.replace(/^\(+/, '(').replace(/\)+$/, ')');
+
+        console.log("[Fawn] Final:", text);
 
         if (text && text.length > 5) {
             showPreviewPopup(text, type);
         } else {
-            console.log("[Fawn] Empty response");
             showManualInputPopup(type);
         }
 
     } catch (error) {
-        console.error("[Fawn] ERROR:", error);
-        toastr.error("Error: " + error.message);
+        console.error("[Fawn] Crash:", error);
+        toastr.error(error.message);
         showManualInputPopup(type);
     } finally {
-        if (button) {
-            button.innerHTML = '<i class="fa-solid fa-star"></i>';
-        }
+        if (button) button.innerHTML = '<i class="fa-solid fa-star"></i>';
     }
 }
 
