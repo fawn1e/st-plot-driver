@@ -359,7 +359,7 @@ function extractOOC(response) {
 
 // ========== ИСПРАВЛЕННАЯ КНОПКА И МЕНЮ ==========
 function addFawnMenu() {
-    if (document.getElementById("fawn-plot-btn")) return true;
+    if (document.getElementById("fawn-plot-container")) return true;
 
     const container = document.getElementById("leftSendForm") ||
                      document.getElementById("form_sheld") ||
@@ -367,88 +367,33 @@ function addFawnMenu() {
 
     if (!container) return false;
 
-    // Находим другие кнопки для примера стилей
-    const existingButtons = container.querySelectorAll("button, .menu_button, .fa-icon-button");
-    let buttonSize = "28px";
-    let buttonPadding = "8px";
-    let fontSize = "16px";
+    // Создаем контейнер для кнопки и меню
+    const plotContainer = document.createElement("div");
+    plotContainer.id = "fawn-plot-container";
+    plotContainer.style.cssText = "position:relative; display:inline-block;";
 
-    if (existingButtons.length > 0) {
-        const firstButton = existingButtons[0];
-        const computedStyle = window.getComputedStyle(firstButton);
-        if (firstButton.clientHeight > 0) {
-            buttonSize = firstButton.clientHeight + "px";
-        }
-        if (parseFloat(computedStyle.padding) > 0) {
-            buttonPadding = computedStyle.padding;
-        }
-        if (computedStyle.fontSize) {
-            fontSize = computedStyle.fontSize;
-        }
-    }
-
-    // Кнопка (основная иконка)
+    // Кнопка (только иконка)
     const btn = document.createElement("div");
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.style.cssText = `
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: ${buttonSize};
-        height: ${buttonSize};
-        padding: ${buttonPadding};
-        color: var(--SmartThemeQuoteColor);
-        font-size: ${fontSize};
-        margin: 0 2px;
-        border-radius: 5px;
-        transition: all 0.2s;
-        user-select: none;
-    `;
+    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px;";
 
-    btn.addEventListener("mouseenter", function() {
-        this.style.background = "var(--SmartThemeBorderColor)";
-    });
-    
-    btn.addEventListener("mouseleave", function() {
-        this.style.background = "";
-    });
-
-    // Меню (отдельный элемент, абсолютное позиционирование)
+    // Меню (отдельный элемент)
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
-    menu.style.cssText = `
-        display: none;
-        position: absolute;
-        bottom: calc(100% + 5px);
-        left: 0;
-        background: var(--SmartThemeBlurTintColor);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--SmartThemeBorderColor);
-        border-radius: 8px;
-        padding: 6px;
-        z-index: 1001;
-        min-width: 150px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        max-height: 300px;
-        overflow-y: auto;
-    `;
-    
+    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:1001; min-width:120px; box-shadow:0 4px 12px rgba(0,0,0,0.2);";
     menu.innerHTML = `
-        <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0;">🩰 Time Skip</div>
-        <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0;">🥀 Plot Twist</div>
-        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeQuoteColor); border-radius:4px; margin:2px 0; display:none; font-weight:bold;">✨ Последний OOC</div>
+        <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🩰 Time Skip</div>
+        <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🥀 Plot Twist</div>
+        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeQuoteColor); display:none;">✨ Последний OOC</div>
         <hr style="border:none; border-top:1px solid var(--SmartThemeBorderColor); margin:5px 0;">
-        <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.8; border-radius:4px; margin:2px 0;">⚙️ Настройки</div>
+        <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7;">⚙️ Настройки</div>
     `;
 
-    // Вставляем кнопку в контейнер формы
-    container.insertBefore(btn, container.firstChild);
-    
-    // Добавляем меню в body, но позиционируем относительно кнопки
-    document.body.appendChild(menu);
+    plotContainer.appendChild(btn);
+    plotContainer.appendChild(menu);
+    container.insertBefore(plotContainer, container.firstChild);
 
     // Обработчик клика по кнопке
     btn.addEventListener("click", function(e) {
@@ -457,12 +402,6 @@ function addFawnMenu() {
         closePopup();
         updateMenuState();
         
-        // Позиционируем меню рядом с кнопкой
-        const btnRect = btn.getBoundingClientRect();
-        menu.style.left = btnRect.left + "px";
-        menu.style.bottom = (window.innerHeight - btnRect.top + 5) + "px";
-        
-        // Показываем/скрываем меню
         const isMenuVisible = menu.style.display === "block";
         menu.style.display = isMenuVisible ? "none" : "block";
     });
@@ -488,28 +427,17 @@ function addFawnMenu() {
             this.style.background = "var(--SmartThemeQuoteColor)";
             this.style.color = "white";
         });
-        
         opt.addEventListener("mouseleave", function() {
             this.style.background = "";
-            this.style.color = this.dataset.action === "lastooc" ? 
-                "var(--SmartThemeQuoteColor)" : "var(--SmartThemeBodyColor)";
+            this.style.color = this.dataset.action === "lastooc" ? "var(--SmartThemeQuoteColor)" : "var(--SmartThemeBodyColor)";
         });
     });
 
     // Закрытие меню при клике вне
     document.addEventListener("click", function(e) {
-        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        if (!plotContainer.contains(e.target)) {
             menu.style.display = "none";
         }
-    });
-
-    // Закрытие меню при скролле или изменении размера окна
-    window.addEventListener("scroll", function() {
-        menu.style.display = "none";
-    });
-    
-    window.addEventListener("resize", function() {
-        menu.style.display = "none";
     });
 
     return true;
@@ -524,16 +452,12 @@ jQuery(() => {
     loadSettings();
     
     // Создаем кнопку при загрузке
-    setTimeout(() => {
-        if (!document.getElementById("fawn-plot-btn")) {
-            addFawnMenu();
-        }
-    }, 500);
+    addFawnMenu();
     
     // Запасной таймер на случай, если контейнер ещё не готов
     setTimeout(() => {
-        if (!document.getElementById("fawn-plot-btn")) {
+        if (!document.getElementById("fawn-plot-container")) {
             addFawnMenu();
         }
-    }, 2000);
+    }, 1000);
 });
