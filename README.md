@@ -40,6 +40,7 @@ That’s it! You should now see a pen icon (`✒️`) in your chat interface.
 ---
 
 ## 📖 Usage
+![interface](menu.png)
 
 ### Basic Usage
 1. **Click the pen icon** (`fa-pen-nib`) in the chat interface.
@@ -47,12 +48,17 @@ That’s it! You should now see a pen icon (`✒️`) in your chat interface.
    - **⏳ Time Skip**: Generate OOC instructions for narrative time jumps *(e.g., "skip to the next morning", "fast-forward a week")*.
    - **⚡ Plot Twist**: Create unexpected plot developments *(e.g., "a secret is revealed", "an unexpected event occurs")*.
    - **⏰ Last OOC**: View and re-use the last generated OOC for this chat *(only appears if you closed the preview without applying)*.
+![lastooc](lastooc.png)
+
    - **🧹 Clear OOC**: Remove the currently active OOC prompt *(appears only when OOC is applied but not yet used in a message)*.
+![clearooc](clearooc.png)
+
    - **✍️ Manual Input**: Write your own custom OOC instructions from scratch.
    - **⚙️ Settings**: Customize AI prompts, message count, and other options.
 3. **Follow the on-screen prompts** to add preferences, preview, edit, and apply your OOC instruction.
 
 ### Preferences System
+![interface](prefs.png)
 
 Before generation, you can specify preferences:
 - **Skip to specific times** (morning, evening, next week).
@@ -62,6 +68,7 @@ Before generation, you can specify preferences:
 Simply enter your preferences in the popup before generation!
 
 ### OOC Preview & Editing
+![generation](generation.png)
 
 After generation:
 1. Review the AI-generated OOC.
@@ -72,9 +79,9 @@ After generation:
 ---
 
 ## ⚙️ Settings
+![settings](settings.png)
 
 Access settings via the menu to customize:
-
 ### Prompt Customization
 - **Time Skip Prompt**: Default: *"You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly. Write 2–3 sentences as OOC direction."*
 - **Plot Twist Prompt**: Default: *"You are a genius narrative stylist. Introduce an unexpected but logical plot twist. Write 2–3 sentences as OOC direction."*
