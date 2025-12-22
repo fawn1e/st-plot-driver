@@ -129,7 +129,7 @@ function showSettingsPopup() {
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
-// ========== ПЕРЕПИСАННОЕ ПРЕВЬЮ - ТОЛЬКО OOC ==========
+// ========== ПРЕВЬЮ OOC ==========
 function showOOCPreview(text, type) {
     closePopup();
 
@@ -311,7 +311,7 @@ function extractOOC(response) {
         .substring(0, 300);
 }
 
-// ========== ИСПРАВЛЕННАЯ КНОПКА ==========
+// ========== ОСНОВНАЯ КНОПКА ==========
 function addFawnMenu() {
     if (document.getElementById("fawn-plot-btn")) return true;
 
@@ -384,14 +384,62 @@ function addFawnMenu() {
     return true;
 }
 
+// 🔥 TRUBLESHOOTING КНОПКА
+function addTroubleshootingButton() {
+    if (document.getElementById("fawn-troubleshoot-btn")) return;
+    
+    const container = document.getElementById("leftSendForm") || 
+                     document.getElementById("form_sheld") || 
+                     document.querySelector("#send_form");
+
+    if (!container) return;
+
+    const btn = document.createElement("div");
+    btn.id = "fawn-troubleshoot-btn";
+    btn.title = "🆘 Fawn Troubleshooting - ЭКСТРЕННЫЙ СБРОС";
+    btn.innerHTML = '🆘';
+    btn.style.cssText = `
+        cursor:pointer; padding:8px; color:#ff4444; font-size:16px; 
+        position:relative; z-index:1002; margin-left:10px;
+        background:rgba(255,68,68,0.1); border:1px solid #ff4444; 
+        border-radius:50%; width:36px; height:36px; display:flex; 
+        align-items:center; justify-content:center; font-weight:bold;
+    `;
+
+    container.appendChild(btn);
+
+    btn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        
+        clearPlotPrompt();
+        closePopup();
+        
+        const oldBtn = document.getElementById("fawn-plot-btn");
+        if (oldBtn) oldBtn.remove();
+        setTimeout(addFawnMenu, 100);
+        
+        toastr.success("🆘 OOC ОЧИЩЕН! Кнопка перезагружена! ✨");
+    });
+
+    btn.addEventListener("mouseenter", () => {
+        btn.style.background = "rgba(255,68,68,0.3)";
+    });
+    btn.addEventListener("mouseleave", () => {
+        btn.style.background = "rgba(255,68,68,0.1)";
+    });
+}
+
 // ========== СОБЫТИЯ ==========
 eventSource.on(event_types.MESSAGE_RECEIVED, clearPlotPrompt);
 eventSource.on(event_types.MESSAGE_SWIPED, clearPlotPrompt);
 
-// 🔥 ЗАЩИТА КНОПКИ
+// ЗАЩИТА КНОПОК
 setInterval(() => {
     if (!document.getElementById('fawn-plot-btn')) {
         addFawnMenu();
+    }
+    if (!document.getElementById('fawn-troubleshoot-btn')) {
+        addTroubleshootingButton();
     }
 }, 5000);
 
@@ -399,6 +447,9 @@ setInterval(() => {
 jQuery(() => {
     loadSettings();
     const interval = setInterval(() => {
-        if (addFawnMenu()) clearInterval(interval);
+        if (addFawnMenu()) {
+            addTroubleshootingButton();
+            clearInterval(interval);
+        }
     }, 1000);
 });
