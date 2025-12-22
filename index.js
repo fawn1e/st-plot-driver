@@ -64,8 +64,17 @@ ${text}
         extension_prompt_roles.SYSTEM
     );
 
+    // СОХРАНЯЕМ в localStorage
+    try {
+        localStorage.setItem('fawn_active_ooc', text);
+        console.log('Fawn: Saved active OOC to localStorage');
+    } catch (e) {
+        console.warn('Fawn: Could not save active OOC:', e);
+    }
+    
+    // Обновляем состояние меню
     lastGeneratedOOC = null;
-    updateMenuState();
+    setTimeout(updateMenuState, 100);
     toastr.success("OOC prompt added");
 }
 
@@ -81,6 +90,17 @@ function clearPlotPrompt() {
         null,
         extension_prompt_roles.SYSTEM
     );
+    
+    // ОЧИЩАЕМ localStorage
+    try {
+        localStorage.removeItem('fawn_active_ooc');
+        console.log('Fawn: Cleared active OOC from localStorage');
+    } catch (e) {
+        console.warn('Fawn: Could not clear active OOC:', e);
+    }
+    
+    // Обновляем состояние меню
+    setTimeout(updateMenuState, 100);
 }
 
 // ========== ОБНОВИТЬ СОСТОЯНИЕ МЕНЮ ==========
@@ -88,31 +108,74 @@ function updateMenuState() {
     const lastOocOption = document.getElementById("fawn-last-ooc-option");
     const clearOocOption = document.getElementById("fawn-clear-ooc-option");
     
+    // Для отладки
+    console.log('Fawn: updateMenuState called');
+    console.log('Fawn: lastGeneratedOOC =', lastGeneratedOOC);
+    console.log('Fawn: hasActiveOOC =', checkActiveOOCPrompt());
+    
     if (lastOocOption) {
-        lastOocOption.style.display = lastGeneratedOOC ? "flex" : "none";
+        const hasLastOOC = lastGeneratedOOC && 
+                          lastGeneratedOOC.text && 
+                          lastGeneratedOOC.text.trim().length > 0;
+        lastOocOption.style.display = hasLastOOC ? "flex" : "none";
+        
+        console.log('Fawn: Last OOC option:', hasLastOOC ? 'visible' : 'hidden');
     }
     
     if (clearOocOption) {
         const hasActiveOOC = checkActiveOOCPrompt();
         clearOocOption.style.display = hasActiveOOC ? "flex" : "none";
+        
+        console.log('Fawn: Clear OOC option:', hasActiveOOC ? 'visible' : 'hidden');
     }
 }
 
 // ========== ПРОВЕРИТЬ АКТИВНЫЙ OOC ПРОМПТ ==========
 function checkActiveOOCPrompt() {
     try {
+        // Сначала проверяем localStorage
+        try {
+            const savedPrompt = localStorage.getItem('fawn_active_ooc');
+            if (savedPrompt && savedPrompt.trim().length > 0) {
+                return true;
+            }
+        } catch (e) {
+            // Игнорируем ошибки localStorage
+        }
+        
+        // Затем проверяем контекст
         const context = getContext();
-        if (context?.extensionPrompts?.length > 0) {
-            return context.extensionPrompts.some(prompt => 
+        if (!context) {
+            console.log('Fawn: No context available');
+            return false;
+        }
+        
+        console.log('Fawn: Checking context for active prompts:', context);
+        
+        if (context.extensionPrompts?.length > 0) {
+            const hasPrompt = context.extensionPrompts.some(prompt => 
                 prompt.name === 'fawn-plot-driver' && 
                 prompt.value && 
                 prompt.value.trim().length > 0
             );
+            console.log('Fawn: Found prompt in extensionPrompts:', hasPrompt);
+            return hasPrompt;
         }
+        
+        // Проверяем другие возможные места
+        if (context.chat && context.chat.length > 0) {
+            const lastMessage = context.chat[context.chat.length - 1];
+            if (lastMessage && lastMessage.mes && lastMessage.mes.includes('[OOC INSTRUCTION FROM PLOT DRIVER]')) {
+                console.log('Fawn: Found OOC in last message');
+                return true;
+            }
+        }
+        
+        return false;
     } catch (e) {
-        console.error('Error checking active OOC:', e);
+        console.error('Fawn: Error checking active OOC:', e);
+        return false;
     }
-    return false;
 }
 
 // ========== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ POPUP ==========
@@ -627,12 +690,43 @@ function showOOCPreview(text, type) {
     
     const popup = createPopup(content, "500px");
 
+    // ========== ФИКС 1: СОХРАНЯЕМ OOC КАК ПОСЛЕДНИЙ СГЕНЕРИРОВАННЫЙ ==========
+    // Это нужно чтобы кнопка "Последний OOC" появлялась в меню
+    lastGeneratedOOC = { 
+        text: text, 
+        type: type, 
+        preferences: currentPreferences || "" 
+    };
+    
+    // ========== ФИКС 2: СОХРАНЯЕМ В LOCALSTORAGE ==========
+    // Чтобы OOC не пропадал при перезагрузке страницы
+    try {
+        localStorage.setItem('fawn_last_ooc', JSON.stringify(lastGeneratedOOC));
+        console.log('Fawn: Сохранён последний OOC в localStorage');
+    } catch (e) {
+        console.warn('Fawn: Не удалось сохранить OOC в localStorage:', e);
+    }
+    
+    // ========== ФИКС 3: ОБНОВЛЯЕМ СОСТОЯНИЕ МЕНЮ ==========
+    // Чтобы кнопки "Последний OOC" и "Удалить OOC" обновились
+    updateMenuState();
+
     document.getElementById("fawn-apply-ooc").addEventListener("click", function() {
         const finalOOC = document.getElementById("fawn-ooc-text").value.trim();
         if (finalOOC) {
+            // ========== ФИКС 4: ОБНОВЛЯЕМ ТЕКСТ ПОСЛЕ РЕДАКТИРОВАНИЯ ==========
+            lastGeneratedOOC.text = finalOOC;
+            
+            // Сохраняем обновлённую версию
+            try {
+                localStorage.setItem('fawn_last_ooc', JSON.stringify(lastGeneratedOOC));
+            } catch (e) {
+                console.warn('Fawn: Не удалось сохранить обновлённый OOC:', e);
+            }
+            
             addPlotPrompt(finalOOC);
             closePopup();
-            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} applied`);
+            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} применён`);
         }
     });
 
@@ -1063,23 +1157,59 @@ eventSource.on(event_types.MESSAGE_SWIPED, function() {
 
 // ========== ЗАПУСК ==========
 jQuery(() => {
+    // Загружаем настройки
     loadSettings();
     
-    lastGeneratedOOC = null;
+    // ЗАГРУЗКА lastGeneratedOOC из localStorage
+    try {
+        const savedLastOOC = localStorage.getItem('fawn_last_ooc');
+        if (savedLastOOC) {
+            lastGeneratedOOC = JSON.parse(savedLastOOC);
+            console.log('Fawn: Loaded last OOC from storage:', lastGeneratedOOC);
+        }
+    } catch (e) {
+        console.warn('Fawn: Could not load last OOC:', e);
+        lastGeneratedOOC = null;
+    }
+    
+    // Инициализируем переменные
     currentPreferences = "";
     
+    // Создаем кнопку с небольшой задержкой
     setTimeout(() => {
         if (!document.getElementById("fawn-plot-btn")) {
-            addFawnMenu();
+            const success = addFawnMenu();
+            console.log('Fawn: Menu creation:', success ? 'successful' : 'failed');
         }
-        updateMenuState();
-        console.log('Fawn Plot Driver: Initialized');
-    }, 500);
+        
+        // Обновляем состояние меню после создания
+        setTimeout(() => {
+            updateMenuState();
+            console.log('Fawn: Initial menu state update');
+        }, 200);
+        
+    }, 800); // Увеличил задержку для полной загрузки страницы
     
+    // Запасной таймер на случай, если контейнер ещё не готов
     setTimeout(() => {
         if (!document.getElementById("fawn-plot-btn")) {
-            addFawnMenu();
+            const success = addFawnMenu();
+            console.log('Fawn: Fallback menu creation:', success ? 'successful' : 'failed');
         }
+        
+        // Принудительно обновляем состояние
         updateMenuState();
-    }, 2000);
+        
+        // Проверяем состояние для отладки
+        console.log('Fawn: Final check - lastGeneratedOOC:', lastGeneratedOOC);
+        console.log('Fawn: Final check - has active OOC:', checkActiveOOCPrompt());
+        
+    }, 2500);
+    
+    // Обновляем состояние при изменении размера окна
+    window.addEventListener('resize', function() {
+        setTimeout(updateMenuState, 100);
+    });
+    
+    console.log('Fawn Plot Driver: Initialized');
 });
