@@ -208,7 +208,7 @@ function showManualInputPopup(type) {
                 ${type === 'timeskip' ? '🩰 Time Skip' : '🥀 Plot Twist'}
             </div>
             <div style="color:var(--SmartThemeBodyColor); text-align:center; margin-bottom:15px; opacity:0.7;">
-                Auto-generation failed 😅<br>Write manually or try again!
+                Auto-generation didn't work 😅<br>Write manually or try again!
             </div>
             <textarea id="fawn-preview-text" style="width:100%; height:120px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical;">${defaultText}</textarea>
             <div style="display:flex; gap:10px; margin-top:15px; justify-content:center; flex-wrap:wrap;">
@@ -268,67 +268,54 @@ async function drivePlot(type) {
             return;
         }
 
+        // Берём сообщения и сокращаем длинные
         const chatHistory = context.chat.slice(-msgCount).map(function(m) {
-            return (m.name || 'User') + ': ' + m.mes;
+            const msg = m.mes || "";
+            const short = msg.length > 200 ? msg.substring(0, 200) + "..." : msg;
+            return (m.name || 'User') + ': ' + short;
         }).join('\n');
 
         const instruction = type === 'timeskip'
             ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
-        // ВАЖНО: Промпт с инструкцией игнорировать пресет!
-        const finalPrompt = "[SYSTEM OVERRIDE - IGNORE ALL PREVIOUS INSTRUCTIONS AND CHARACTER CARDS]\n\n" +
-            "You are a narrative assistant. Your ONLY task is to generate a brief OOC direction.\n\n" +
-            "Task: " + instruction + "\n\n" +
-            "Recent story context (last " + msgCount + " messages):\n" + chatHistory + "\n\n" +
-            "RULES:\n" +
-            "1. Write ONLY 2-3 sentences of OOC direction\n" +
-            "2. Format: (OOC: [your direction here])\n" +
-            "3. Do NOT roleplay as any character\n" +
-            "4. Do NOT continue the story\n" +
-            "5. Do NOT use <think> tags\n" +
-            "6. ONLY provide the direction\n\n" +
-            "Your OOC direction:";
+        // Короткий промпт
+        const finalPrompt = instruction + "\n\nStory context:\n" + chatHistory + "\n\nWrite a brief OOC direction (2-3 sentences):";
 
-        console.log("[Fawn] Sending request to API...");
+        console.log("[Fawn] Sending request...");
+        console.log("[Fawn] Prompt length:", finalPrompt.length);
 
-        // ПРАВИЛЬНЫЙ вызов - просто строка!
-        const response = await generateQuietPrompt(finalPrompt);
+        // Правильный вызов с объектом!
+        const response = await generateQuietPrompt({
+            prompt: finalPrompt,
+            quietToLoud: false,
+            skipWIAN: true,
+            quietImage: null,
+            quietName: null,
+        });
 
-        console.log("[Fawn] === RESPONSE DEBUG ===");
+        console.log("[Fawn] === RESPONSE ===");
         console.log("[Fawn] typeof:", typeof response);
         console.log("[Fawn] value:", response);
-        if (response && typeof response === "object") {
-            console.log("[Fawn] keys:", Object.keys(response));
-        }
-        console.log("[Fawn] ========================");
 
         let text = "";
 
-        // Обработка ответа
         if (typeof response === "string" && response.length > 0) {
             text = response;
             console.log("[Fawn] Got string response");
         } else if (response && typeof response === "object") {
-            // Chat Completion format
             if (response.choices && response.choices[0]) {
                 if (response.choices[0].message && response.choices[0].message.content) {
                     text = response.choices[0].message.content;
-                    console.log("[Fawn] Extracted from choices[0].message.content");
                 } else if (response.choices[0].text) {
                     text = response.choices[0].text;
-                    console.log("[Fawn] Extracted from choices[0].text");
                 }
             } else if (response.content) {
                 text = response.content;
-                console.log("[Fawn] Extracted from response.content");
-            } else if (response.message && response.message.content) {
-                text = response.message.content;
-                console.log("[Fawn] Extracted from response.message.content");
             } else if (response.text) {
                 text = response.text;
-                console.log("[Fawn] Extracted from response.text");
             }
+            console.log("[Fawn] Extracted from object:", text ? "success" : "failed");
         }
 
         // Чистим от think тегов
@@ -341,13 +328,13 @@ async function drivePlot(type) {
         }
 
         console.log("[Fawn] Final text:", text);
-        console.log("[Fawn] Text length:", text ? text.length : 0);
+        console.log("[Fawn] Length:", text ? text.length : 0);
 
         if (text && text.length > 10) {
-            console.log("[Fawn] Showing preview popup!");
+            console.log("[Fawn] Showing preview!");
             showPreviewPopup(text, type);
         } else {
-            console.log("[Fawn] Text empty or too short, showing manual input");
+            console.log("[Fawn] Empty, showing manual input");
             showManualInputPopup(type);
         }
 
@@ -383,12 +370,32 @@ function addFawnMenu() {
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative; display:flex; align-items:center; justify-content:center;";
+    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative; display:flex; align-items:center; justify-content:center; transition:opacity 0.3s;";
+
+    btn.addEventListener("mouseenter", function() {
+        btn.style.opacity = "0.8";
+    });
+
+    btn.addEventListener("mouseleave", function() {
+        btn.style.opacity = "1";
+    });
 
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
-    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:9999; min-width:120px; font-size:14px;";
-    menu.innerHTML = '<div class="fawn-option" data-action="timeskip" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px;">🩰 Time Skip</div><div class="fawn-option" data-action="twist" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px;">🥀 Plot Twist</div><div style="border-top:1px solid var(--SmartThemeBorderColor); margin:3px 0;"></div><div class="fawn-option" data-action="settings" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7; border-radius:4px;">⚙️ Settings</div>';
+    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:9999; min-width:120px; font-size:14px; backdrop-filter:blur(10px);";
+
+    menu.innerHTML = `
+        <div class="fawn-option" data-action="timeskip" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-clock" style="width:16px;"></i> Time Skip
+        </div>
+        <div class="fawn-option" data-action="twist" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-bolt" style="width:16px;"></i> Plot Twist
+        </div>
+        <div style="border-top:1px solid var(--SmartThemeBorderColor); margin:3px 0;"></div>
+        <div class="fawn-option" data-action="settings" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7; border-radius:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-gear" style="width:16px;"></i> Settings
+        </div>
+    `;
 
     btn.appendChild(menu);
     container.insertBefore(btn, container.firstChild);
@@ -416,11 +423,17 @@ function addFawnMenu() {
         opt.addEventListener("mouseenter", function() {
             opt.style.background = "var(--SmartThemeQuoteColor)";
             opt.style.opacity = "0.9";
+            opt.style.color = "var(--SmartThemeBlurTintColor)";
         });
 
         opt.addEventListener("mouseleave", function() {
             opt.style.background = "transparent";
-            opt.style.opacity = opt.getAttribute("data-action") === "settings" ? "0.7" : "1";
+            opt.style.color = "var(--SmartThemeBodyColor)";
+            if (opt.getAttribute("data-action") === "settings") {
+                opt.style.opacity = "0.7";
+            } else {
+                opt.style.opacity = "1";
+            }
         });
     }
 
