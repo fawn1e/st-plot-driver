@@ -52,6 +52,7 @@ That’s it! You should now see a pen icon (`✒️`) in your chat interface.
 ![lastooc](lastooc.png)
 
    - **🧹 Clear OOC**: Remove the currently active OOC prompt *(appears only when OOC is applied but not yet used in a message)*.
+
 ![clearooc](clearooc.png)
 
    - **✍️ Manual Input**: Write your own custom OOC instructions from scratch.
