@@ -227,23 +227,109 @@ IMPORTANT: Write ONLY the scene direction. 2-3 sentences. No <think> tags, no ex
 
         console.log("🩰 Fawn: Ответ получен:", response);
 
-       let text = "";
+       async function drivePlot(type) {
+    console.log("🩰 Fawn: === НАЧАЛО ===");
 
-// Обработка разных типов ответа
-if (typeof response === "string") {
-    text = response;
-} else if (response && typeof response === "object") {
-    // Формат Chat Completion API!
-    if (response.choices && response.choices[0] && response.choices[0].message) {
-        text = response.choices[0].message.content || "";
-    }
-    // Другие возможные форматы
-    else {
-        text = response.text || response.message || response.content || response.mes || "";
-    }
-}
+    lastType = type;
 
-console.log("🩰 Fawn: Извлечённый текст:", text);
+    const button = document.getElementById("fawn-plot-btn");
+    if (button) button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
+
+    try {
+        const context = getContext();
+        const msgCount = extension_settings[extensionName].messageCount || 15;
+
+        if (!context.chat || context.chat.length === 0) {
+            toastr.warning("Начни чат сначала! 💕");
+            return;
+        }
+
+        const chatHistory = context.chat.slice(-msgCount).map(m =>
+            `${m.name || 'User'}: ${m.mes}`
+        ).join('\n');
+
+        const instruction = type === 'timeskip'
+            ? extension_settings[extensionName].timeskipPrompt
+            : extension_settings[extensionName].twistPrompt;
+
+        const finalPrompt = `${instruction}
+
+Recent story (last ${msgCount} messages):
+${chatHistory}
+
+Write ONLY the OOC direction. 2-3 sentences.`;
+
+        console.log("🩰 Fawn: Отправляю запрос...");
+
+        const response = await generateQuietPrompt(finalPrompt, false, false);
+
+        // ========== СУПЕР ОТЛАДКА ==========
+        console.log("🩰 Fawn: ====== ОТЛАДКА ОТВЕТА ======");
+        console.log("🩰 Fawn: typeof response =", typeof response);
+        console.log("🩰 Fawn: response =", response);
+        console.log("🩰 Fawn: JSON.stringify =", JSON.stringify(response));
+
+        if (response === undefined) console.log("🩰 Fawn: response is undefined!");
+        if (response === null) console.log("🩰 Fawn: response is null!");
+        if (response === "") console.log("🩰 Fawn: response is empty string!");
+
+        if (typeof response === "object" && response !== null) {
+            console.log("🩰 Fawn: Object keys =", Object.keys(response));
+            if (response.choices) {
+                console.log("🩰 Fawn: Has choices!");
+                console.log("🩰 Fawn: choices[0] =", response.choices[0]);
+            }
+        }
+        console.log("🩰 Fawn: ============================");
+        // ===================================
+
+        let text = "";
+
+        if (typeof response === "string" && response.length > 0) {
+            text = response;
+            console.log("🩰 Fawn: Взял как строку");
+        } else if (response && typeof response === "object") {
+            if (response.choices?.[0]?.message?.content) {
+                text = response.choices[0].message.content;
+                console.log("🩰 Fawn: Взял из choices[0].message.content");
+            } else if (response.content) {
+                text = response.content;
+                console.log("🩰 Fawn: Взял из response.content");
+            } else if (response.message?.content) {
+                text = response.message.content;
+                console.log("🩰 Fawn: Взял из response.message.content");
+            } else if (response.text) {
+                text = response.text;
+                console.log("🩰 Fawn: Взял из response.text");
+            }
+        }
+
+        // Чистим
+        text = (text || "")
+            .replace(/<think>[\s\S]*?<\/think>/gi, '')
+            .replace(/<think>[\s\S]*/gi, '')
+            .replace(/<\/think>/gi, '')
+            .trim();
+
+        console.log("🩰 Fawn: Финальный текст:", text);
+        console.log("🩰 Fawn: Длина:", text.length);
+
+        if (text && text.length > 5) {
+            console.log("🩰 Fawn: Показываю popup!");
+            showPreviewPopup(text, type);
+        } else {
+            console.log("🩰 Fawn: Текст пустой, показываю ручной ввод");
+            showManualInputPopup(type);
+        }
+
+    } catch (error) {
+        console.error("🩰 Fawn: ОШИБКА:", error);
+        toastr.error("Ошибка: " + error.message);
+        showManualInputPopup(type);
+    } finally {
+        if (button) button.innerHTML = '<i class="fa-solid fa-star"></i>';
+        console.log("🩰 Fawn: === КОНЕЦ ===");
+    }
 
         // Чистим от think тегов
         text = text
