@@ -238,26 +238,27 @@ function addFawnMenu() {
         position: relative;
     `;
 
-    const menu = document.createElement("div");
-    menu.id = "fawn-menu";
-    menu.style.cssText = `
-        display: none;
-        position: absolute;
-        bottom: 45px;
-        left: 0;
-        background: var(--SmartThemeBlurTintColor);
-        border: 2px solid var(--SmartThemeBorderColor);
-        border-radius: 12px;
-        padding: 8px;
-        z-index: 9999;
-        min-width: 160px;
-    `;
-    menu.innerHTML = `
-        <div class="fawn-option" data-action="timeskip" style="padding:10px; cursor:pointer; color:var(--SmartThemeBodyColor);">🩰 Time Skip</div>
-        <div class="fawn-option" data-action="twist" style="padding:10px; cursor:pointer; color:var(--SmartThemeBodyColor);">🥀 Plot Twist</div>
-        <div style="border-top:1px solid var(--SmartThemeBorderColor); margin:5px 0;"></div>
-        <div class="fawn-option" data-action="settings" style="padding:10px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7;">⚙️ Настройки</div>
-    `;
+const menu = document.createElement("div");
+menu.id = "fawn-menu";
+menu.style.cssText = `
+    display: none;
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    background: var(--SmartThemeBlurTintColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 9999;
+    min-width: 120px;
+    font-size: 14px;
+`;
+menu.innerHTML = `
+    <div class="fawn-option" data-action="timeskip" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px;">🩰 Time Skip</div>
+    <div class="fawn-option" data-action="twist" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px;">🥀 Plot Twist</div>
+    <div style="border-top:1px solid var(--SmartThemeBorderColor); margin:3px 0;"></div>
+    <div class="fawn-option" data-action="settings" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7; border-radius:4px;">⚙️ Настройки</div>
+`;
 
     btn.appendChild(menu);
     container.insertBefore(btn, container.firstChild);
