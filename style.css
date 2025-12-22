@@ -1,0 +1,53 @@
+/* Анимация пишущего пера */
+@keyframes writing-glow {
+    0% { 
+        transform: rotate(0deg) translateY(0px); 
+        color: var(--pink-color, #ffb7c5); /* Используем переменную темы или розовый по умолчанию */
+        text-shadow: 0 0 5px var(--mainColorRelativeAlpha); 
+    }
+    25% { transform: rotate(-15deg) translateY(-2px); }
+    75% { transform: rotate(15deg) translateY(2px); }
+    100% { 
+        transform: rotate(0deg) translateY(0px); 
+        color: var(--text-color); 
+        text-shadow: 0 0 15px var(--pink-color, #ffb7c5); 
+    }
+}
+
+.fawn-writing {
+    animation: writing-glow 0.7s infinite ease-in-out;
+}
+
+/* Контейнер меню */
+#plot-driver-options {
+    background: var(--black75); /* Стандартный полупрозрачный фон Таверны */
+    border: 1px solid var(--pink-color, #ffb7c5);
+    backdrop-filter: blur(5px); /* Модный эффект размытия */
+    color: var(--text-color);
+}
+
+/* Пункты меню */
+.plot-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    color: var(--text-color);
+}
+
+.plot-item:hover {
+    background: var(--pink-color, #ffb7c5);
+    color: #000 !important; /* Текст становится темным на розовом фоне для читаемости */
+    padding-left: 15px;
+}
+
+/* Иконка на панели */
+#plot-driver-icon {
+    color: var(--text-color); /* Звездочка будет того же цвета, что и остальные кнопки */
+    transition: 0.3s;
+    opacity: 0.8;
+}
+
+#plot-driver-icon:hover {
+    opacity: 1;
+    color: var(--pink-color, #ffb7c5);
+    filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
+}
