@@ -1,5 +1,5 @@
 import { extension_settings, getContext } from "../../../extensions.js";
-import { callGenericChatCompletion } from "../../script.js";
+import { generateQuietPrompt } from "../../../../script.js";
 
 const extensionName = "plot-driver-fawn";
 const defaultSettings = {
@@ -26,7 +26,7 @@ async function drivePlot(type) {
     const finalPrompt = `[System Note: You are Fawn, the silent architect. Direct the scene elegantly.]\n\nStory Context:\n${chatHistory}\n\nTask: ${instruction}\n\nWrite ONLY the OOC message.`;
 
     try {
-        const response = await callGenericChatCompletion(finalPrompt, "Fawn's Analysis");
+        const response = await generateQuietPrompt(finalPrompt);
         if (response) {
             const textarea = document.getElementById('send_textarea');
             textarea.value = response;
