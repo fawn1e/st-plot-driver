@@ -1,72 +1,53 @@
-/* Fawn Plot Driver - МИНИМАЛЬНЫЙ */
-#fawn-plot-btn {
-    width: 48px !important;
-    height: 48px !important;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.4) !important;
-    backdrop-filter: blur(20px) !important;
-    border: 2px solid transparent !important;
-    border-radius: 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    margin: 4px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+/* Анимация пишущего пера */
+@keyframes writing-glow {
+    0% { 
+        transform: rotate(0deg) translateY(0px); 
+        color: var(--pink-color, #ffb7c5); /* Используем переменную темы или розовый по умолчанию */
+        text-shadow: 0 0 5px var(--mainColorRelativeAlpha); 
+    }
+    25% { transform: rotate(-15deg) translateY(-2px); }
+    75% { transform: rotate(15deg) translateY(2px); }
+    100% { 
+        transform: rotate(0deg) translateY(0px); 
+        color: var(--text-color); 
+        text-shadow: 0 0 15px var(--pink-color, #ffb7c5); 
+    }
 }
 
-#fawn-plot-btn:hover {
-    border-color: var(--SmartThemeQuoteColor) !important;
-    transform: translateY(-2px) !important;
+.fawn-writing {
+    animation: writing-glow 0.7s infinite ease-in-out;
 }
 
-#fawn-menu {
-    position: fixed !important;
-    z-index: 10000 !important;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.9) !important;
-    backdrop-filter: blur(25px) !important;
-    border: 2px solid var(--SmartThemeBorderColor) !important;
-    border-radius: 20px !important;
-    padding: 12px !important;
-    min-width: 220px !important;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
-    display: none !important;
+/* Контейнер меню */
+#plot-driver-options {
+    background: var(--black75); /* Стандартный полупрозрачный фон Таверны */
+    border: 1px solid var(--pink-color, #ffb7c5);
+    backdrop-filter: blur(5px); /* Модный эффект размытия */
+    color: var(--text-color);
 }
 
-.fawn-option {
-    padding: 14px 16px !important;
-    margin: 4px 0 !important;
-    border-radius: 12px !important;
-    cursor: pointer !important;
-    font-size: 14px !important;
-    color: var(--SmartThemeBodyColor) !important;
+/* Пункты меню */
+.plot-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    color: var(--text-color);
 }
 
-.fawn-option:hover {
-    background: rgba(var(--SmartThemeQuoteColorRGB), 0.15) !important;
-    color: var(--SmartThemeQuoteColor) !important;
+.plot-item:hover {
+    background: var(--pink-color, #ffb7c5);
+    color: #000 !important; /* Текст становится темным на розовом фоне для читаемости */
+    padding-left: 15px;
 }
 
-#fawn-popup-bg {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(0,0,0,0.6) !important;
-    backdrop-filter: blur(12px) !important;
+/* Иконка на панели */
+#plot-driver-icon {
+    color: var(--text-color); /* Звездочка будет того же цвета, что и остальные кнопки */
+    transition: 0.3s;
+    opacity: 0.8;
 }
 
-#fawn-popup > div:not(#fawn-popup-bg) {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.85) !important;
-    backdrop-filter: blur(30px) !important;
-    border: 2px solid var(--SmartThemeBorderColor) !important;
-    border-radius: 24px !important;
-    padding: 32px !important;
-    max-width: 90vw !important;
-    max-height: 90vh !important;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.6) !important;
+#plot-driver-icon:hover {
+    opacity: 1;
+    color: var(--pink-color, #ffb7c5);
+    filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
 }
