@@ -19,6 +19,7 @@ if (!extension_settings[extensionName]) {
 let lastType = null;
 let isGenerating = false;
 let lastGeneratedOOC = null;
+let currentPreferences = ""; // Сохраняем преференсы между окнами
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
@@ -80,6 +81,176 @@ function updateMenuState() {
     const lastOocOption = document.getElementById("fawn-last-ooc-option");
     if (lastOocOption) {
         lastOocOption.style.display = lastGeneratedOOC ? "block" : "none";
+    }
+}
+
+// ========== ОКНО ПРЕФЕРЕНСОВ ==========
+function showPreferencesPopup(type) {
+    closePopup();
+    lastType = type;
+    currentPreferences = ""; // Сбрасываем предыдущие преференсы
+    
+    const title = type === 'timeskip' ? 'Time Skip Preferences' : 'Plot Twist Preferences';
+    const icon = type === 'timeskip' ? 'fa-hourglass-half' : 'fa-bolt';
+    const examples = type === 'timeskip' 
+        ? 'Examples:\n• Skip to the next morning\n• Fast-forward to evening\n• Jump ahead one week\n• Transition to the next scene'
+        : 'Examples:\n• A character reveals a secret\n• Unexpected event occurs\n• Plot direction changes\n• New obstacle appears';
+
+    const popup = document.createElement("div");
+    popup.id = "fawn-popup";
+    popup.innerHTML = `
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:20px; z-index:99999; width:500px; max-width:90%; max-height:80vh; overflow-y:auto;">
+            <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid ${icon}"></i> ${title}
+            </div>
+            
+            <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:16px; opacity:0.8; line-height:1.5;">
+                Add specific details or preferences for this ${type === 'timeskip' ? 'time skip' : 'plot twist'}.
+                The AI will incorporate these into the OOC direction.
+            </div>
+            
+            <div style="margin-bottom:16px;">
+                <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-lightbulb fa-xs"></i> Your Preferences (optional):
+                </div>
+                <textarea id="fawn-preferences-text" style="width:100%; height:120px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical; line-height:1.4;" placeholder="Enter any specific details or requirements..."></textarea>
+            </div>
+            
+            <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; margin-bottom:20px;">
+                <div style="color:var(--SmartThemeBodyColor); font-size:12px; font-weight:500; margin-bottom:8px; opacity:0.7; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-list fa-xs"></i> ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} Examples:
+                </div>
+                <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.6; white-space: pre-line; line-height:1.5; font-family:monospace;">
+                    ${examples}
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:8px; justify-content:center; width:100%;">
+                <button id="fawn-pref-generate" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate with Preferences
+                </button>
+                <button id="fawn-pref-skip" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
+                    <i class="fa-solid fa-forward"></i> Skip Preferences
+                </button>
+                <button id="fawn-pref-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    // Фокус на текстовое поле
+    setTimeout(() => {
+        const textarea = document.getElementById("fawn-preferences-text");
+        if (textarea) textarea.focus();
+    }, 100);
+
+    document.getElementById("fawn-pref-generate").addEventListener("click", function() {
+        const preferences = document.getElementById("fawn-preferences-text").value.trim();
+        currentPreferences = preferences;
+        closePopup();
+        setTimeout(() => drivePlotWithPreferences(type, preferences), 100);
+    });
+
+    document.getElementById("fawn-pref-skip").addEventListener("click", function() {
+        currentPreferences = "";
+        closePopup();
+        setTimeout(() => drivePlotWithPreferences(type, ""), 100);
+    });
+
+    document.getElementById("fawn-pref-close").addEventListener("click", closePopup);
+    document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
+}
+
+// ========== ГЛАВНАЯ ФУНКЦИЯ С ПРЕФЕРЕНСАМИ ==========
+async function drivePlotWithPreferences(type, preferences = "") {
+    if (isGenerating) {
+        toastr.info("Generation in progress");
+        return;
+    }
+
+    console.log('Fawn Plot Driver: Generating OOC with preferences...');
+    isGenerating = true;
+    lastType = type;
+
+    const btn = document.getElementById("fawn-plot-btn");
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    }
+
+    try {
+        const context = getContext();
+        const msgCount = extension_settings[extensionName].messageCount || 15;
+
+        if (!context?.chat?.length) {
+            toastr.warning("Start a chat first");
+            return;
+        }
+
+        const chatHistory = context.chat.slice(-msgCount).map(m => {
+            const name = m.is_user ? 'User' : (m.name || 'Character');
+            const cleanMes = m.mes.replace(/<[^>]*>/g, '').trim();
+            return `${name}: ${cleanMes}`;
+        }).join('\n');
+
+        const instruction = type === 'timeskip'
+            ? extension_settings[extensionName].timeskipPrompt
+            : extension_settings[extensionName].twistPrompt;
+
+        // Добавляем преференсы к промпту если они есть
+        let finalInstruction = instruction;
+        if (preferences && preferences.trim().length > 0) {
+            finalInstruction = `${instruction}\n\nUSER PREFERENCES: ${preferences}`;
+        }
+
+        const oocPrompt = `TASK: ${finalInstruction}
+
+CONTEXT (last ${msgCount} messages):
+${chatHistory}
+
+RULES:
+- Write ONLY OOC direction (2-3 sentences max)
+- Format: (OOC: your direction here)
+- NO roleplay, NO character speech, NO descriptions
+- ${preferences ? 'INCORPORATE USER PREFERENCES: ' + preferences : ''}
+- Example: (OOC: Time passes as they walk through the forest. Night falls and they find a campsite.)
+
+OOC:`;
+
+        const response = await generateQuietPrompt(oocPrompt, false, false);
+        let oocText = extractOOC(response);
+
+        if (!oocText || oocText.trim().length < 5) {
+            toastr.warning("Failed to generate OOC");
+            showManualOOC(type);
+            return;
+        }
+
+        if (oocText && !oocText.includes('OOC:') && !oocText.includes('(OOC:')) {
+            oocText = `(OOC: ${oocText.trim()})`;
+        }
+
+        if (oocText && oocText.length > 10 && !oocText.includes('undefined')) {
+            lastGeneratedOOC = { text: oocText, type: type, preferences: preferences };
+            showOOCPreview(oocText, type);
+        } else {
+            toastr.warning("Failed to generate OOC");
+            showManualOOC(type);
+        }
+
+    } catch (error) {
+        console.error('Fawn Plot Driver Error:', error);
+        toastr.error("OOC generation error");
+        showManualOOC(type);
+    } finally {
+        isGenerating = false;
+        const btn = document.getElementById("fawn-plot-btn");
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-pen-nib"></i>';
+        }
+        updateMenuState();
     }
 }
 
@@ -166,6 +337,7 @@ function showOOCPreview(text, type) {
         <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:20px; z-index:99999; width:500px; max-width:90%;">
             <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid ${icon}"></i> ${title}
+                ${currentPreferences ? '<span style="font-size:11px; background:var(--SmartThemeQuoteColor); color:white; padding:2px 6px; border-radius:10px; margin-left:8px;">With Preferences</span>' : ''}
             </div>
             <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:16px; opacity:0.7;">
                 AI-generated OOC. Edit if needed:
@@ -184,6 +356,16 @@ function showOOCPreview(text, type) {
                     <i class="fa-solid fa-xmark"></i> Cancel
                 </button>
             </div>
+            ${currentPreferences ? `
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--SmartThemeBorderColor);">
+                <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.7; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-lightbulb fa-xs"></i> Applied Preferences:
+                </div>
+                <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.6; background:var(--SmartThemeInputColor); padding:8px; border-radius:4px; font-family:monospace; line-height:1.4;">
+                    ${currentPreferences}
+                </div>
+            </div>
+            ` : ''}
         </div>
     `;
     document.body.appendChild(popup);
@@ -199,7 +381,8 @@ function showOOCPreview(text, type) {
 
     document.getElementById("fawn-regen-ooc").addEventListener("click", function() {
         closePopup();
-        setTimeout(() => drivePlot(lastType), 150);
+        // При регенерации сохраняем преференсы
+        setTimeout(() => drivePlotWithPreferences(lastType, currentPreferences), 150);
     });
 
     document.getElementById("fawn-cancel").addEventListener("click", closePopup);
@@ -255,99 +438,19 @@ function showManualOOC(type) {
 
     document.getElementById("fawn-try-again").addEventListener("click", function() {
         closePopup();
-        setTimeout(() => drivePlot(type), 100);
+        // При повторной попытке показываем преференсы снова
+        setTimeout(() => showPreferencesPopup(type), 100);
     });
 
     document.getElementById("fawn-manual-close").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
-// ========== ГЛАВНАЯ ФУНКЦИЯ ==========
-async function drivePlot(type) {
-    if (isGenerating) {
-        toastr.info("Generation in progress");
-        return;
-    }
-
-    console.log('Fawn Plot Driver: Generating OOC...');
-    isGenerating = true;
-    lastType = type;
-
-    const btn = document.getElementById("fawn-plot-btn");
-    if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    }
-
-    try {
-        const context = getContext();
-        const msgCount = extension_settings[extensionName].messageCount || 15;
-
-        if (!context?.chat?.length) {
-            toastr.warning("Start a chat first");
-            return;
-        }
-
-        const chatHistory = context.chat.slice(-msgCount).map(m => {
-            const name = m.is_user ? 'User' : (m.name || 'Character');
-            const cleanMes = m.mes.replace(/<[^>]*>/g, '').trim();
-            return `${name}: ${cleanMes}`;
-        }).join('\n');
-
-        const instruction = type === 'timeskip'
-            ? extension_settings[extensionName].timeskipPrompt
-            : extension_settings[extensionName].twistPrompt;
-
-        const oocPrompt = `TASK: ${instruction}
-
-CONTEXT (last ${msgCount} messages):
-${chatHistory}
-
-RULES:
-- Write ONLY OOC direction (2-3 sentences max)
-- Format: (OOC: your direction here)
-- NO roleplay, NO character speech, NO descriptions
-- Example: (OOC: Time passes as they walk through the forest. Night falls and they find a campsite.)
-
-OOC:`;
-
-        const response = await generateQuietPrompt(oocPrompt, false, false);
-        let oocText = extractOOC(response);
-
-        if (!oocText || oocText.trim().length < 5) {
-            toastr.warning("Failed to generate OOC");
-            showManualOOC(type);
-            return;
-        }
-
-        if (oocText && !oocText.includes('OOC:') && !oocText.includes('(OOC:')) {
-            oocText = `(OOC: ${oocText.trim()})`;
-        }
-
-        if (oocText && oocText.length > 10 && !oocText.includes('undefined')) {
-            lastGeneratedOOC = { text: oocText, type: type };
-            showOOCPreview(oocText, type);
-        } else {
-            toastr.warning("Failed to generate OOC");
-            showManualOOC(type);
-        }
-
-    } catch (error) {
-        console.error('Fawn Plot Driver Error:', error);
-        toastr.error("OOC generation error");
-        showManualOOC(type);
-    } finally {
-        isGenerating = false;
-        const btn = document.getElementById("fawn-plot-btn");
-        if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-pen-nib"></i>';
-        }
-        updateMenuState();
-    }
-}
-
 // ========== ПОКАЗАТЬ ПОСЛЕДНИЙ OOC ==========
 function showLastOOC() {
     if (lastGeneratedOOC) {
+        // Восстанавливаем преференсы из сохраненного OOC
+        currentPreferences = lastGeneratedOOC.preferences || "";
         showOOCPreview(lastGeneratedOOC.text, lastGeneratedOOC.type);
     } else {
         toastr.info("No saved OOC found");
@@ -399,7 +502,7 @@ function showManualInputPopup() {
         
         if (oocText) {
             addPlotPrompt(oocText);
-            lastGeneratedOOC = { text: oocText, type: oocType };
+            lastGeneratedOOC = { text: oocText, type: oocType, preferences: "" };
             closePopup();
             toastr.success("OOC applied manually");
             updateMenuState();
@@ -598,7 +701,8 @@ function addFawnMenu() {
             } else if (action === "lastooc") {
                 showLastOOC();
             } else {
-                drivePlot(action);
+                // Вместо прямой генерации показываем окно преференсов
+                showPreferencesPopup(action);
             }
         });
 
@@ -641,6 +745,7 @@ jQuery(() => {
     loadSettings();
     
     lastGeneratedOOC = null;
+    currentPreferences = "";
     
     setTimeout(() => {
         if (!document.getElementById("fawn-plot-btn")) {
