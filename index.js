@@ -288,24 +288,27 @@ OOC:`;
         }
 
         if (oocText?.length > 5) {
+            // Сначала сохраняем OOC
             lastGeneratedOOC = { text: oocText, type: type };
-            updateMenuState();
+            // Затем показываем превью
             showOOCPreview(oocText, type);
         } else {
             toastr.warning("OOC не сгенерировался 😅");
-            showManualOOC(type);
+            // Не показываем ручной ввод автоматически
         }
 
     } catch (error) {
         console.error(' Fawn: Error:', error);
         toastr.error("Ошибка генерации OOC");
-        showManualOOC(type);
+        // Не показываем ручной ввод автоматически
     } finally {
         isGenerating = false;
         const icon = document.querySelector("#fawn-plot-btn i");
         if (icon) {
             icon.className = "fa-solid fa-star";
         }
+        // Обновляем состояние меню после генерации
+        updateMenuState();
     }
 }
 
@@ -455,6 +458,8 @@ function addFawnMenu() {
         e.preventDefault();
         e.stopPropagation();
         closePopup();
+        
+        // ОБНОВЛЯЕМ СОСТОЯНИЕ ПЕРЕД ПОКАЗОМ МЕНЮ
         updateMenuState();
         
         // Позиционируем меню рядом с кнопкой
@@ -522,6 +527,11 @@ eventSource.on(event_types.MESSAGE_SWIPED, clearPlotPrompt);
 // ========== ЗАПУСК ==========
 jQuery(() => {
     loadSettings();
+    
+    // Убедимся, что lastGeneratedOOC инициализирован как null
+    if (typeof lastGeneratedOOC === 'undefined') {
+        lastGeneratedOOC = null;
+    }
     
     // Создаем кнопку при загрузке
     setTimeout(() => {
