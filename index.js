@@ -227,17 +227,23 @@ IMPORTANT: Write ONLY the scene direction. 2-3 sentences. No <think> tags, no ex
 
         console.log("🩰 Fawn: Ответ получен:", response);
 
-        let text = "";
+       let text = "";
 
-        // Обработка разных типов ответа
-        if (typeof response === "string") {
-            text = response;
-        } else if (response && typeof response === "object") {
-            text = response.text || response.message || response.content || response.mes || "";
-            if (!text && response.toString) {
-                text = response.toString();
-            }
-        }
+// Обработка разных типов ответа
+if (typeof response === "string") {
+    text = response;
+} else if (response && typeof response === "object") {
+    // Формат Chat Completion API!
+    if (response.choices && response.choices[0] && response.choices[0].message) {
+        text = response.choices[0].message.content || "";
+    }
+    // Другие возможные форматы
+    else {
+        text = response.text || response.message || response.content || response.mes || "";
+    }
+}
+
+console.log("🩰 Fawn: Извлечённый текст:", text);
 
         // Чистим от think тегов
         text = text
