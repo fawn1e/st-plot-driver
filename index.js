@@ -282,7 +282,12 @@ async function drivePlot(type) {
 
         console.log("🩰 Fawn: Отправляю запрос...");
 
-        const response = await generateQuietPrompt(finalPrompt, false, false);
+        // ИСПРАВЛЕНИЕ: Вызываем generateQuietPrompt с объектом параметров
+        const response = await generateQuietPrompt({
+            prompt: finalPrompt,
+            silent: true,           // Без уведомлений
+            disablePromptCache: false // Не отключать кэш промптов
+        });
 
         // ========== ОТЛАДКА ==========
         console.log("🩰 Fawn: ====== ОТВЕТ ======");
