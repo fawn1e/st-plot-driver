@@ -1,60 +1,386 @@
-/* Анимация пишущего пера */
-@keyframes writing-glow {
+/* Fawn Plot Driver - Premium Design */
+#fawn-plot-btn {
+    position: relative !important;
+    width: 48px !important;
+    height: 48px !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.4) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 2px solid transparent !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+    margin: 4px !important;
+    z-index: 100 !important;
+}
+
+#fawn-plot-btn:hover {
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.6) !important;
+    border-color: var(--SmartThemeQuoteColor) !important;
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 0 16px 48px rgba(var(--SmartThemeQuoteColorRGB), 0.3) !important;
+}
+
+#fawn-plot-btn:active {
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+#fawn-plot-btn i {
+    font-size: 20px !important;
+    color: var(--SmartThemeQuoteColor) !important;
+    transition: all 0.3s ease !important;
+}
+
+#fawn-plot-btn i.fa-spin {
+    color: var(--SmartThemeAccentColor) !important;
+    animation: fawnSpin 1s linear infinite !important;
+}
+
+@keyframes fawnSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Главное меню */
+#fawn-menu {
+    position: fixed !important;
+    z-index: 10000 !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.9) !important;
+    backdrop-filter: blur(25px) saturate(180%) !important;
+    border: 2px solid var(--SmartThemeBorderColor) !important;
+    border-radius: 20px !important;
+    padding: 12px !important;
+    min-width: 220px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1) !important;
+    display: none !important;
+    font-family: inherit !important;
+    animation: fawnMenuSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@keyframes fawnMenuSlideIn {
+    0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.fawn-option {
+    padding: 14px 16px !important;
+    margin: 4px 0 !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: var(--SmartThemeBodyColor) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    border: 1px solid transparent !important;
+}
+
+.fawn-option::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent) !important;
+    transition: left 0.6s !important;
+}
+
+.fawn-option:hover::before {
+    left: 100% !important;
+}
+
+.fawn-option:hover {
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.15) !important;
+    border-color: var(--SmartThemeQuoteColor) !important;
+    color: var(--SmartThemeQuoteColor) !important;
+    transform: translateX(6px) !important;
+    box-shadow: 0 6px 20px rgba(var(--SmartThemeQuoteColorRGB), 0.2) !important;
+}
+
+#fawn-last-ooc-option {
+    color: var(--SmartThemeAccentColor) !important;
+    font-style: italic !important;
+    border-left: 3px solid var(--SmartThemeAccentColor) !important;
+    padding-left: 20px !important;
+}
+
+#fawn-last-ooc-option:hover {
+    border-left-color: white !important;
+}
+
+/* Попапы - Premium Glass Morphism */
+#fawn-popup {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99998 !important;
+    pointer-events: none !important;
+}
+
+#fawn-popup-bg {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0,0,0,0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    pointer-events: all !important;
+    animation: fawnFadeIn 0.3s ease !important;
+}
+
+@keyframes fawnFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fawn-popup-content,
+#fawn-popup > div:not(#fawn-popup-bg) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.85) !important;
+    backdrop-filter: blur(30px) saturate(200%) !important;
+    border: 2px solid transparent !important;
+    border-radius: 24px !important;
+    padding: 32px !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    box-shadow: 
+        0 25px 80px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        0 0 0 1px rgba(255,255,255,0.1) !important;
+    animation: fawnPopupRise 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    pointer-events: all !important;
+    overflow-y: auto !important;
+}
+
+@keyframes fawnPopupRise {
     0% { 
-        transform: rotate(0deg) translateY(0px); 
-        color: var(--pink-color, #ffb7c5); /* Используем переменную темы или розовый по умолчанию */
-        text-shadow: 0 0 5px var(--mainColorRelativeAlpha); 
+        opacity: 0; 
+        transform: translate(-50%, -50%) translateY(50px) scale(0.9); 
     }
-    25% { transform: rotate(-15deg) translateY(-2px); }
-    75% { transform: rotate(15deg) translateY(2px); }
     100% { 
-        transform: rotate(0deg) translateY(0px); 
-        color: var(--text-color); 
-        text-shadow: 0 0 15px var(--pink-color, #ffb7c5); 
+        opacity: 1; 
+        transform: translate(-50%, -50%) translateY(0) scale(1); 
     }
 }
 
-.fawn-writing {
-    animation: writing-glow 0.7s infinite ease-in-out;
+.fawn-popup-content::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, transparent, var(--SmartThemeQuoteColor), transparent) !important;
 }
 
-/* Контейнер меню */
-#plot-driver-options {
-    background: var(--black75); /* Стандартный полупрозрачный фон Таверны */
-    border: 1px solid var(--pink-color, #ffb7c5);
-    backdrop-filter: blur(5px); /* Модный эффект размытия */
-    color: var(--text-color);
+.fawn-popup-title {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    margin-bottom: 24px !important;
+    background: linear-gradient(135deg, var(--SmartThemeQuoteColor), var(--SmartThemeAccentColor)) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    text-shadow: none !important;
+    position: relative !important;
 }
 
-/* Пункты меню */
-.plot-item {
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    color: var(--text-color);
+.fawn-popup-title::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -8px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 60px !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, var(--SmartThemeQuoteColor), var(--SmartThemeAccentColor)) !important;
+    border-radius: 2px !important;
 }
 
-.plot-item:hover {
-    background: var(--pink-color, #ffb7c5);
-    color: #000 !important; /* Текст становится темным на розовом фоне для читаемости */
-    padding-left: 15px;
+/* Поля ввода */
+.fawn-popup-textarea,
+#fawn-ooc-text,
+#fawn-manual-ooc,
+#fawn-manual-text {
+    width: 100% !important;
+    min-height: 100px !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.4) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 2px solid rgba(var(--SmartThemeBorderColorRGB), 0.5) !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+    color: var(--SmartThemeBodyColor) !important;
+    font-family: inherit !important;
+    font-size: 15px !important;
+    resize: vertical !important;
+    transition: all 0.3s ease !important;
+    box-shadow: inset 0 4px 12px rgba(0,0,0,0.2) !important;
 }
 
-/* Иконка на панели */
-#plot-driver-icon {
-    color: var(--text-color); /* Звездочка будет того же цвета, что и остальные кнопки */
-    transition: 0.3s;
-    opacity: 0.8;
+.fawn-popup-textarea:focus,
+#fawn-ooc-text:focus,
+#fawn-manual-ooc:focus,
+#fawn-manual-text:focus {
+    border-color: var(--SmartThemeQuoteColor) !important;
+    box-shadow: 
+        0 0 0 4px rgba(var(--SmartThemeQuoteColorRGB), 0.15),
+        inset 0 2px 8px rgba(0,0,0,0.1) !important;
+    transform: translateY(-2px) !important;
+    outline: none !important;
 }
 
-#plot-driver-icon:hover {
-    opacity: 1;
-    color: var(--pink-color, #ffb7c5);
-    filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
+.fawn-popup-label {
+    display: block !important;
+    margin: 0 0 12px 0 !important;
+    font-weight: 600 !important;
+    color: var(--SmartThemeQuoteColor) !important;
+    font-size: 15px !important;
 }
 
+/* Кнопки */
+.fawn-popup-buttons,
+div[style*="display:flex; gap:10px"] {
+    display: flex !important;
+    gap: 12px !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    margin: 24px 0 12px 0 !important;
+}
+
+.menu_button {
+    padding: 14px 24px !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(20px) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    min-width: 140px !important;
+    text-align: center !important;
+}
+
+.menu_button::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent) !important;
+    transition: left 0.7s !important;
+    z-index: 1 !important;
+}
+
+.menu_button:hover::before {
+    left: 100% !important;
 }
 
 .menu_button:hover {
-    filter: brightness(1.2);
-    box-shadow: 0 0 10px var(--pink-color, #ffb7c5);
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4) !important;
+}
+
+.menu_button[style*="background:var(--SmartThemeQuoteColor)"] {
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.2) !important;
+    border: 2px solid var(--SmartThemeQuoteColor) !important;
+    color: var(--SmartThemeQuoteColor) !important;
+}
+
+.menu_button[style*="background:var(--SmartThemeQuoteColor)"]:hover {
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.3) !important;
+    border-color: white !important;
+    color: white !important;
+}
+
+/* Слайдер */
+#fawn-set-msgcount {
+    width: 100% !important;
+    height: 8px !important;
+    border-radius: 10px !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.5) !important;
+    outline: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    margin: 12px 0 !important;
+}
+
+#fawn-set-msgcount::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    background: var(--SmartThemeQuoteColor) !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 16px rgba(var(--SmartThemeQuoteColorRGB), 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+#fawn-set-msgcount::-webkit-slider-thumb:hover {
+    transform: scale(1.2) !important;
+    box-shadow: 0 6px 24px rgba(var(--SmartThemeQuoteColorRGB), 0.6) !important;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .fawn-popup-content {
+        padding: 24px 20px !important;
+        margin: 20px !important;
+        max-width: calc(100vw - 40px) !important;
+    }
+    
+    #fawn-menu {
+        min-width: 200px !important;
+        right: 20px !important;
+        left: auto !important;
+    }
+    
+    .fawn-option {
+        padding: 12px 14px !important;
+        font-size: 13px !important;
+    }
+}
+
+/* Микроанимации */
+@keyframes fawnPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+#fawn-last-ooc-option[style*="display: block"] {
+    animation: fawnPulse 2s infinite !important;
+}
+
+/* Кастомный скролл для попапов */
+.fawn-popup-content::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.fawn-popup-content::-webkit-scrollbar-track {
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.3) !important;
+    border-radius: 3px !important;
+}
+
+.fawn-popup-content::-webkit-scrollbar-thumb {
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.5) !important;
+    border-radius: 3px !important;
+}
+
+.fawn-popup-content::-webkit-scrollbar-thumb:hover {
+    background: var(--SmartThemeQuoteColor) !important;
 }
