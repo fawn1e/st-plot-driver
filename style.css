@@ -1,52 +1,35 @@
-/* ========== FAWN PLOT DRIVER - АДАПТИВНЫЙ ДИЗАЙН ========== */
+/* ========== FAWN PLOT DRIVER STYLES ========== */
+/* Версия 1.0 - Стильный дизайн с анимациями */
 
-/* CSS переменные для адаптации к теме */
+/* ========== ОСНОВНЫЕ ПЕРЕМЕННЫЕ ========== */
 :root {
-    --fawn-bg-light: rgba(255, 255, 255, 0.95);
-    --fawn-bg-dark: rgba(20, 20, 30, 0.95);
-    --fawn-border-light: rgba(0, 0, 0, 0.1);
-    --fawn-border-dark: rgba(255, 255, 255, 0.15);
-    --fawn-text-light: #2c3e50;
-    --fawn-text-dark: #ecf0f1;
-    --fawn-shadow-light: rgba(0, 0, 0, 0.1);
-    --fawn-shadow-dark: rgba(0, 0, 0, 0.4);
+    --fawn-primary: var(--SmartThemeQuoteColor, #ff6b9d);
+    --fawn-secondary: var(--SmartThemeBorderColor, #c8a2c8);
+    --fawn-bg: var(--SmartThemeBlurTintColor, rgba(255, 255, 255, 0.1));
+    --fawn-text: var(--SmartThemeBodyColor, #f0f0f0);
+    --fawn-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --fawn-glow: 0 0 20px var(--fawn-primary);
+    --fawn-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --fawn-border-radius: 12px;
+    --fawn-blur: blur(10px);
 }
 
-/* Определяем тему */
-body.light-theme, body:not(.dark-theme) {
-    --fawn-bg: var(--fawn-bg-light);
-    --fawn-border: var(--fawn-border-light);
-    --fawn-text: var(--fawn-text-light);
-    --fawn-shadow: var(--fawn-shadow-light);
-    --fawn-hover-bg: rgba(0, 0, 0, 0.05);
-}
-
-body.dark-theme {
-    --fawn-bg: var(--fawn-bg-dark);
-    --fawn-border: var(--fawn-border-dark);
-    --fawn-text: var(--fawn-text-dark);
-    --fawn-shadow: var(--fawn-shadow-dark);
-    --fawn-hover-bg: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== КНОПКА ОСНОВНАЯ ===== */
+/* ========== КНОПКА ========== */
 #fawn-plot-btn {
     position: relative;
-    width: 48px;
-    height: 48px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--SmartThemeQuoteColor) 0%, color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, transparent) 100%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--fawn-primary) 0%, var(--fawn-secondary) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    margin-right: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 
-        0 4px 15px color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent),
-        0 1px 3px rgba(0, 0, 0, 0.2);
-    border: 2px solid color-mix(in srgb, var(--SmartThemeQuoteColor) 60%, white);
+    margin-right: 10px;
+    transition: var(--fawn-transition);
+    box-shadow: var(--fawn-shadow);
     z-index: 1000;
+    border: 2px solid transparent;
     overflow: hidden;
 }
 
@@ -57,360 +40,230 @@ body.dark-theme {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
-    animation: fawn-shine 3s infinite linear;
-    pointer-events: none;
-    opacity: 0.5;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#fawn-plot-btn:hover::before {
+    opacity: 1;
+    animation: fawn-shine 2s infinite;
 }
 
 #fawn-plot-btn:hover {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 
-        0 8px 25px color-mix(in srgb, var(--SmartThemeQuoteColor) 40%, transparent),
-        0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-#fawn-plot-btn:active {
-    transform: translateY(0) scale(0.98);
-    transition: all 0.1s ease;
+    box-shadow: var(--fawn-glow), var(--fawn-shadow);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 #fawn-plot-btn i {
-    font-size: 22px;
     color: white;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    position: relative;
+    font-size: 20px;
     z-index: 2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Анимация блеска */
-@keyframes fawn-shine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+/* Анимация вращения при генерации */
+#fawn-plot-btn i.fa-spin {
+    animation: fawn-spin 1.5s linear infinite;
 }
 
-/* ===== МЕНЮ КОНТЕКСТНОЕ ===== */
+/* ========== МЕНЮ ========== */
 #fawn-menu {
     position: fixed;
     display: none;
-    min-width: 260px;
+    min-width: 240px;
     background: var(--fawn-bg);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    padding: 12px;
-    box-shadow: 
-        0 20px 60px var(--fawn-shadow),
-        0 0 0 1px var(--fawn-border);
+    backdrop-filter: var(--fawn-blur);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--fawn-border-radius);
+    box-shadow: var(--fawn-shadow);
+    padding: 8px;
     z-index: 9999;
-    border: 1px solid var(--fawn-border);
-    animation: fawn-menu-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fawn-slide-up 0.3s ease-out;
     transform-origin: bottom left;
-    color: var(--fawn-text);
 }
 
-@keyframes fawn-menu-appear {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+#fawn-menu::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    width: 20px;
+    height: 20px;
+    background: var(--fawn-bg);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+    z-index: -1;
 }
 
-/* ===== ОПЦИИ МЕНЮ ===== */
 .fawn-option {
-    padding: 14px 16px;
+    padding: 12px 16px;
     margin: 4px 0;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: 8px;
     color: var(--fawn-text);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    transition: var(--fawn-transition);
+    font-weight: 500;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     position: relative;
     overflow: hidden;
-    border: 1px solid transparent;
+}
+
+.fawn-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.fawn-option:hover::before {
+    left: 100%;
 }
 
 .fawn-option:hover {
-    background: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
-    color: var(--SmartThemeQuoteColor);
+    background: linear-gradient(135deg, var(--fawn-primary) 0%, rgba(255, 107, 157, 0.2) 100%);
     transform: translateX(4px);
-    border-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 40%, transparent);
-    box-shadow: 0 4px 15px color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+}
+
+#fawn-menu hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    margin: 8px 0;
 }
 
 #fawn-last-ooc-option {
-    color: var(--SmartThemeQuoteColor);
+    color: var(--fawn-primary);
     font-weight: 600;
-    position: relative;
-    background: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent);
 }
 
 #fawn-last-ooc-option::after {
     content: '✨';
     position: absolute;
-    right: 16px;
+    right: 10px;
+    opacity: 0.7;
     animation: fawn-sparkle 2s infinite;
 }
 
-@keyframes fawn-sparkle {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* ===== POPUP ОСНОВНОЙ ===== */
+/* ========== POPUP ОСНОВНОЙ ========== */
 #fawn-popup {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 99999;
-    animation: fawn-fade-in 0.3s ease;
+    z-index: 10000;
+    animation: fawn-fade-in 0.3s ease-out;
 }
 
 #fawn-popup-bg {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
 }
 
-@keyframes fawn-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* ===== КОНТЕЙНЕР POPUP ===== */
-#fawn-popup > div:not(#fawn-popup-bg) {
+.fawn-popup-content {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--fawn-bg);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
+    backdrop-filter: var(--fawn-blur);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--fawn-border-radius);
     padding: 30px;
-    width: 540px;
-    max-width: 90vw;
-    max-height: 85vh;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
     overflow-y: auto;
-    border: 1px solid var(--fawn-border);
-    box-shadow: 
-        0 25px 70px var(--fawn-shadow),
-        0 0 0 1px var(--fawn-border);
-    animation: fawn-popup-appear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--fawn-text);
+    box-shadow: var(--fawn-shadow);
+    animation: fawn-scale-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes fawn-popup-appear {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -48%) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
-/* ===== ЗАГОЛОВКИ ===== */
-#fawn-popup > div:not(#fawn-popup-bg) > div:first-child {
-    font-size: 22px;
+.fawn-popup-title {
+    color: var(--fawn-primary);
+    font-size: 24px;
     font-weight: 700;
-    color: var(--SmartThemeQuoteColor);
     text-align: center;
     margin-bottom: 25px;
     padding-bottom: 15px;
-    border-bottom: 2px solid color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent);
-    position: relative;
+    border-bottom: 2px solid;
+    border-image: linear-gradient(90deg, transparent, var(--fawn-primary), transparent) 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* ===== ФОРМЫ И ПОЛЯ ВВОДА ===== */
-#fawn-manual-type,
-#fawn-set-msgcount,
-#fawn-ooc-text,
-#fawn-manual-ooc,
-.fawn-popup-textarea,
-#fawn-manual-text {
-    width: 100%;
-    padding: 14px;
-    background: color-mix(in srgb, var(--SmartThemeBlurTintColor) 90%, transparent);
-    border: 2px solid color-mix(in srgb, var(--SmartThemeBorderColor) 50%, transparent);
-    border-radius: 12px;
-    color: var(--SmartThemeBodyColor);
+/* ========== ФОРМЫ И ИНПУТЫ ========== */
+.fawn-popup-label {
+    display: block;
+    color: var(--fawn-text);
+    font-weight: 500;
+    margin-bottom: 8px;
     font-size: 14px;
-    line-height: 1.5;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
-
-#fawn-ooc-text,
-#fawn-manual-ooc,
-#fawn-manual-text {
-    min-height: 120px;
-    resize: vertical;
-    font-family: 'Monaco', 'Consolas', monospace;
+    opacity: 0.9;
 }
 
 .fawn-popup-textarea {
+    width: 100%;
     min-height: 100px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--fawn-text);
+    font-size: 14px;
     resize: vertical;
+    transition: var(--fawn-transition);
+    line-height: 1.5;
 }
 
-#fawn-manual-type {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 12px;
-    padding-right: 36px;
-}
-
-#fawn-manual-type:focus,
-#fawn-ooc-text:focus,
-#fawn-manual-ooc:focus,
-#fawn-manual-text:focus,
 .fawn-popup-textarea:focus {
     outline: none;
-    border-color: var(--SmartThemeQuoteColor);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent);
-    background: color-mix(in srgb, var(--SmartThemeBlurTintColor) 95%, transparent);
+    border-color: var(--fawn-primary);
+    box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2);
+    background: rgba(0, 0, 0, 0.3);
 }
 
-/* ===== СТИЛЬНЫЙ ПОЛЗУНОК ===== */
+/* Range input стилизация */
 #fawn-set-msgcount {
-    -webkit-appearance: none;
-    appearance: none;
     height: 6px;
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 3px;
-    background: linear-gradient(to right, 
-        var(--SmartThemeQuoteColor) 0%, 
-        var(--SmartThemeQuoteColor) var(--progress, 50%), 
-        color-mix(in srgb, var(--SmartThemeBorderColor) 30%, transparent) var(--progress, 50%), 
-        color-mix(in srgb, var(--SmartThemeBorderColor) 30%, transparent) 100%
-    );
-    margin: 20px 0;
-    cursor: pointer;
+    outline: none;
 }
 
-/* Ползунок для Webkit */
 #fawn-set-msgcount::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+    background: var(--fawn-primary);
     border-radius: 50%;
-    background: var(--SmartThemeQuoteColor);
     cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+    transition: var(--fawn-transition);
 }
 
 #fawn-set-msgcount::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 
-        0 3px 12px color-mix(in srgb, var(--SmartThemeQuoteColor) 60%, transparent),
-        0 0 0 1px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 15px var(--fawn-primary);
 }
 
-/* Ползунок для Firefox */
-#fawn-set-msgcount::-moz-range-track {
-    height: 6px;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--SmartThemeBorderColor) 30%, transparent);
-}
-
-#fawn-set-msgcount::-moz-range-progress {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--SmartThemeQuoteColor);
-}
-
-#fawn-set-msgcount::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--SmartThemeQuoteColor);
-    cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Лейбл для ползунка */
-#fawn-msg-count-label {
-    color: var(--SmartThemeQuoteColor);
-    font-weight: 700;
-    font-size: 16px;
-    display: inline-block;
-    min-width: 30px;
-    text-align: center;
-    background: color-mix(in srgb, var(--SmartThemeQuoteColor) 10%, transparent);
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-left: 10px;
-}
-
-/* ===== КНОПКИ ===== */
-.menu_button {
-    padding: 14px 24px;
-    border-radius: 12px;
-    border: none;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: color-mix(in srgb, var(--SmartThemeBorderColor) 20%, transparent);
-    color: var(--SmartThemeBodyColor);
-    min-width: 140px;
-    text-align: center;
-}
-
-.menu_button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent);
-}
-
-/* Специфичные кнопки */
-#fawn-apply-ooc,
-#fawn-apply-manual,
-#fawn-set-save,
-#fawn-manual-apply {
-    background: linear-gradient(135deg, var(--SmartThemeQuoteColor), color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, transparent)) !important;
-    color: white !important;
-    font-weight: 700 !important;
-}
-
-#fawn-regen-ooc:hover,
-#fawn-try-again:hover,
-#fawn-set-reset:hover {
-    background: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent) !important;
-    color: var(--SmartThemeQuoteColor) !important;
-}
-
-#fawn-cancel:hover,
-#fawn-set-close:hover,
-#fawn-manual-cancel:hover {
-    background: color-mix(in srgb, #ff6b6b 20%, transparent) !important;
-    color: #ff6b6b !important;
-}
-
-/* Группы кнопок */
-#fawn-popup > div:not(#fawn-popup-bg) > div:last-child:not(.fawn-popup-buttons),
+/* ========== КНОПКИ ========== */
 .fawn-popup-buttons {
     display: flex;
     gap: 12px;
@@ -419,139 +272,224 @@ body.dark-theme {
     margin-top: 25px;
 }
 
-/* ===== РУЧНОЙ ВВОД - ОСОБЫЙ СТИЛЬ ===== */
-#fawn-manual-type,
+.menu_button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--fawn-text);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--fawn-transition);
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu_button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.menu_button:hover::before {
+    left: 100%;
+}
+
+.menu_button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.menu_button:active {
+    transform: translateY(0);
+}
+
+/* Специальные кнопки */
+#fawn-apply-ooc,
+#fawn-manual-apply,
+#fawn-set-save {
+    background: linear-gradient(135deg, var(--fawn-primary) 0%, #ff8ab3 100%);
+    color: white !important;
+    font-weight: 600;
+    border: none;
+}
+
+#fawn-apply-ooc:hover,
+#fawn-manual-apply:hover,
+#fawn-set-save:hover {
+    box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+}
+
+/* Кнопка регенерации */
+#fawn-regen-ooc {
+    background: linear-gradient(135deg, rgba(200, 162, 200, 0.3) 0%, rgba(200, 162, 200, 0.1) 100%);
+}
+
+/* ========== OOC ПРЕВЬЮ ========== */
+#fawn-ooc-text,
 #fawn-manual-ooc,
 #fawn-manual-text {
-    background: color-mix(in srgb, var(--SmartThemeBlurTintColor) 95%, transparent) !important;
-    border: 2px solid color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent) !important;
-}
-
-/* ===== ЛЕЙБЛЫ ===== */
-label[for^="fawn-"],
-.fawn-popup-label {
-    display: block;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    color: var(--fawn-text);
+    font-family: 'Monaco', 'Consolas', monospace;
     font-size: 14px;
-    font-weight: 600;
-    color: var(--SmartThemeBodyColor);
-    margin-bottom: 8px;
-    margin-top: 16px;
-    opacity: 0.9;
+    line-height: 1.6;
+    resize: vertical;
+    transition: var(--fawn-transition);
+    width: 100%;
 }
 
-/* ===== АНИМАЦИЯ ГЕНЕРАЦИИ ===== */
-.fa-spin {
-    animation: fawn-spin 1s linear infinite;
+#fawn-ooc-text:focus,
+#fawn-manual-ooc:focus,
+#fawn-manual-text:focus {
+    outline: none;
+    border-color: var(--fawn-primary);
+    box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2);
+    background: rgba(0, 0, 0, 0.3);
 }
 
+/* ========== АНИМАЦИИ ========== */
 @keyframes fawn-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Индикатор генерации */
-#fawn-plot-btn.generating {
-    animation: fawn-pulse 2s ease-in-out infinite;
+@keyframes fawn-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
-@keyframes fawn-pulse {
-    0%, 100% { 
-        box-shadow: 
-            0 4px 15px color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent),
-            0 0 0 0 rgba(var(--SmartThemeQuoteColorRGB), 0.4);
+@keyframes fawn-slide-up {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
     }
-    50% { 
-        box-shadow: 
-            0 4px 15px color-mix(in srgb, var(--SmartThemeQuoteColor) 30%, transparent),
-            0 0 0 10px rgba(var(--SmartThemeQuoteColorRGB), 0);
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* ===== SCROLLBAR ===== */
-#fawn-popup > div:not(#fawn-popup-bg)::-webkit-scrollbar {
-    width: 8px;
+@keyframes fawn-fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
-#fawn-popup > div:not(#fawn-popup-bg)::-webkit-scrollbar-track {
-    background: color-mix(in srgb, var(--SmartThemeBorderColor) 10%, transparent);
-    border-radius: 4px;
+@keyframes fawn-scale-up {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
-#fawn-popup > div:not(#fawn-popup-bg)::-webkit-scrollbar-thumb {
-    background: var(--SmartThemeQuoteColor);
-    border-radius: 4px;
+@keyframes fawn-sparkle {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
 }
 
-#fawn-popup > div:not(#fawn-popup-bg)::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--SmartThemeQuoteColor) 80%, black);
+/* ========== ПОДСКАЗКИ И ТОСТЫ ========== */
+/* Стилизация для toastr уведомлений */
+.toast {
+    background: var(--fawn-bg) !important;
+    backdrop-filter: var(--fawn-blur) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--fawn-text) !important;
+    box-shadow: var(--fawn-shadow) !important;
 }
 
-/* ===== АДАПТИВНОСТЬ ===== */
+.toast-success {
+    border-left: 4px solid var(--fawn-primary) !important;
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 768px) {
-    #fawn-plot-btn {
-        width: 44px;
-        height: 44px;
-        margin-right: 8px;
-    }
-    
-    #fawn-plot-btn i {
-        font-size: 20px;
-    }
-    
-    #fawn-menu {
-        min-width: 220px;
-        padding: 10px;
-    }
-    
-    .fawn-option {
-        padding: 12px 14px;
-        font-size: 13px;
-    }
-    
-    #fawn-popup > div:not(#fawn-popup-bg) {
+    .fawn-popup-content {
+        width: 95%;
         padding: 20px;
-        width: 95vw;
+    }
+    
+    .fawn-popup-buttons {
+        flex-direction: column;
     }
     
     .menu_button {
-        min-width: 120px;
-        padding: 12px 16px;
-        font-size: 13px;
+        min-width: 100%;
+    }
+    
+    #fawn-menu {
+        min-width: 200px;
+        left: auto !important;
+        right: 10px;
+        bottom: 60px !important;
+    }
+    
+    #fawn-menu::before {
+        left: auto;
+        right: 20px;
     }
 }
 
-/* ===== ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ ===== */
-.fawn-help-text {
+/* ========== ПОЛОСА ПРОКРУТКИ ========== */
+.fawn-popup-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fawn-popup-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.fawn-popup-content::-webkit-scrollbar-thumb {
+    background: var(--fawn-primary);
+    border-radius: 4px;
+    opacity: 0.5;
+}
+
+.fawn-popup-content::-webkit-scrollbar-thumb:hover {
+    background: var(--fawn-secondary);
+    opacity: 0.8;
+}
+
+/* ========== ИКОНКИ В МЕНЮ ========== */
+.fawn-option::after {
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-left: auto;
+    opacity: 0.6;
     font-size: 12px;
-    color: color-mix(in srgb, var(--SmartThemeBodyColor) 60%, transparent);
-    text-align: center;
-    margin-top: 10px;
-    font-style: italic;
 }
 
-.fawn-separator {
-    height: 1px;
-    background: color-mix(in srgb, var(--SmartThemeBorderColor) 30%, transparent);
-    margin: 15px 0;
-    border: none;
+.fawn-option[data-action="timeskip"]::after {
+    content: '\f51f'; /* Иконка часов */
 }
 
-/* Улучшаем контрастность для светлых тем */
-body.light-theme #fawn-popup-bg,
-body:not(.dark-theme) #fawn-popup-bg {
-    background: rgba(255, 255, 255, 0.7);
+.fawn-option[data-action="twist"]::after {
+    content: '\f0e7'; /* Иконка молнии */
 }
 
-body.light-theme #fawn-menu,
-body:not(.dark-theme) #fawn-menu {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+.fawn-option[data-action="lastooc"]::after {
+    content: '\f1da'; /* Иконка истории */
 }
 
-body.light-theme #fawn-popup > div:not(#fawn-popup-bg),
-body:not(.dark-theme) #fawn-popup > div:not(#fawn-popup-bg) {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+.fawn-option[data-action="manual"]::after {
+    content: '\f303'; /* Иконка карандаша */
+}
+
+.fawn-option[data-action="settings"]::after {
+    content: '\f013'; /* Иконка шестеренки */
 }
