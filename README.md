@@ -1,8 +1,5 @@
 ## Fawn's Plot Driver 📝
 An AI-powered narrative control extension for SillyTavern that helps generate plot-driving OOC (Out Of Character) instructions.
-
-![interface](menu.png)
-
 **Author's Note**: I'm not a professional coder, so please explain any issues in simple terms! <3
 
 ## Features ✨
@@ -32,6 +29,7 @@ An AI-powered narrative control extension for SillyTavern that helps generate pl
 That's it! You should now see a pen icon (`✒️`) in your chat interface.
 
 ## Usage 📖
+![interface](menu.png)
 ### Basic Usage
 1. Click the pen icon (`fa-pen-nib`) in the chat interface
 2. Choose from:
@@ -42,6 +40,7 @@ That's it! You should now see a pen icon (`✒️`) in your chat interface.
    - **⚙️ Settings**: Customize prompts and settings
 
 ### Preferences System
+![interface](prefs.png)
 Before generation, you can specify preferences:
 - **Skip to specific times** (morning, evening, next week)
 - **Add character details** (specific NPCs, locations, events)
@@ -50,6 +49,7 @@ Before generation, you can specify preferences:
 Simply enter your preferences in the popup before generation!
 
 ### OOC Preview & Editing
+![generation](generation.png)
 After generation:
 1. Review the AI-generated OOC
 2. Edit the text if needed
@@ -58,6 +58,7 @@ After generation:
 
 ## Settings ⚙️
 Access settings via the menu to customize:
+![settings](settings.png)
 
 ### Prompt Customization
 - **Time Skip Prompt**: Default: "You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly."
