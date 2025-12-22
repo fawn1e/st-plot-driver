@@ -1,8 +1,12 @@
 {
-    "name": "plot-driver-fawn",
-    "display_name": "✦ Plot Driver by Fawn",
-    "version": "1.1.0",
-    "description": "Smart & Coquette story architect. Tasteful OOC transitions and genius plot twists.",
+    "display_name": "Fawn's Plot Driver",
+    "loading_order": 100,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
     "author": "fawn1e",
-    "entrypoint": "index.js"
+    "version": "1.0.0",
+    "homePage": "",
+    "auto_update": false
 }
