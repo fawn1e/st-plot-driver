@@ -1,9 +1,10 @@
-console.log("🩰 Fawn: Загрузка...");
+console.log("[Fawn] Extension loading...");
 
 import { extension_settings, getContext } from "../../../extensions.js";
 import { generateQuietPrompt } from "../../../../script.js";
 import { setExtensionPrompt, extension_prompt_types, extension_prompt_roles } from "../../../../script.js";
 import { eventSource, event_types } from "../../../../script.js";
+import { saveSettingsDebounced } from "../../../../script.js";
 
 const extensionName = "plot-driver-fawn";
 const defaultSettings = {
@@ -20,7 +21,8 @@ let lastType = null;
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
-    localStorage.setItem('fawn_settings', JSON.stringify(extension_settings[extensionName]));
+    extension_settings[extensionName] = extension_settings[extensionName] || {};
+    saveSettingsDebounced();
 }
 
 function loadSettings() {
@@ -30,7 +32,7 @@ function loadSettings() {
             extension_settings[extensionName] = { ...defaultSettings, ...JSON.parse(saved) };
         }
     } catch (e) {
-        console.log("🩰 Fawn: Используем дефолтные настройки");
+        console.log("[Fawn] Используем дефолтные настройки");
     }
 }
 
@@ -57,7 +59,7 @@ ${text}
         extension_prompt_roles.SYSTEM
     );
 
-    console.log("🩰 Fawn: OOC промпт добавлен!");
+    console.log("[Fawn] OOC промпт добавлен!");
 }
 
 // ========== ОЧИСТИТЬ OOC ПРОМПТ ==========
@@ -72,7 +74,7 @@ function clearPlotPrompt() {
         null,
         extension_prompt_roles.SYSTEM
     );
-    console.log("🩰 Fawn: OOC промпт очищен");
+    console.log("[Fawn] OOC промпт очищен");
 }
 
 // ========== ОКНО НАСТРОЕК ==========
@@ -243,12 +245,12 @@ function showManualInputPopup(type) {
 
 // ========== ГЛАВНАЯ ФУНКЦИЯ ==========
 async function drivePlot(type) {
-    console.log("🩰 Fawn: === НАЧАЛО ===");
-    console.log("🩰 Fawn: Тип:", type);
+    console.log("[Fawn] === НАЧАЛО ===");
+    console.log("[Fawn] Тип:", type);
     
     // Проверяем, доступна ли функция generateQuietPrompt
     if (typeof generateQuietPrompt !== 'function') {
-        console.error("🩰 Fawn: generateQuietPrompt не найдена!");
+        console.error("[Fawn] generateQuietPrompt не найдена!");
         toastr.error("Ошибка: функция генерации не доступна");
         showManualInputPopup(type);
         return;
@@ -280,146 +282,71 @@ async function drivePlot(type) {
 
         const finalPrompt = instruction + "\n\nRecent story (last " + msgCount + " messages):\n" + chatHistory + "\n\nWrite ONLY the OOC direction. 2-3 sentences.";
 
-        console.log("🩰 Fawn: Отправляю запрос...");
+        console.log("[Fawn] Отправляю запрос...");
 
-        // ИСПРАВЛЕНИЕ: Вызываем generateQuietPrompt с объектом параметров
-        const response = await generateQuietPrompt({
+        // Упрощенный вызов как в рабочем примере
+        const result = await generateQuietPrompt({
             prompt: finalPrompt,
-            silent: true,           // Без уведомлений
-            disablePromptCache: false // Не отключать кэш промптов
+            silent: true,
+            disablePromptCache: false,
         });
 
-        // ========== ОТЛАДКА ==========
-        console.log("🩰 Fawn: ====== ОТВЕТ ======");
-        console.log("🩰 Fawn: typeof =", typeof response);
-        console.log("🩰 Fawn: value =", response);
-        
-        if (response && typeof response === "object") {
-            console.log("🩰 Fawn: keys =", Object.keys(response));
-            if (response.choices && Array.isArray(response.choices)) {
-                console.log("🩰 Fawn: choices[0] =", response.choices[0]);
-                if (response.choices[0] && typeof response.choices[0] === "object") {
-                    console.log("🩰 Fawn: choices[0].message =", response.choices[0].message);
-                    if (response.choices[0].message) {
-                        console.log("🩰 Fawn: message.content =", response.choices[0].message.content);
-                    }
-                }
-            }
-        }
-        console.log("🩰 Fawn: ===================");
-        // =============================
+        console.log("[Fawn] Результат получен:", result);
 
         let text = "";
 
-        // Улучшенная обработка разных форматов ответа
-        if (typeof response === "string") {
-            text = response;
-            console.log("🩰 Fawn: Взял как строку");
-        } else if (response && typeof response === "object") {
-            // Обработка формата Chat Completion API (OpenAI, Claude и др.)
-            if (response.choices && Array.isArray(response.choices) && response.choices[0]) {
-                const choice = response.choices[0];
-                if (choice.message && choice.message.content) {
-                    text = choice.message.content;
-                    console.log("🩰 Fawn: Взял из choices[0].message.content");
-                } else if (choice.text) {
-                    text = choice.text;
-                    console.log("🩰 Fawn: Взял из choices[0].text");
-                } else if (choice.content) {
-                    text = choice.content;
-                    console.log("🩰 Fawn: Взял из choices[0].content");
-                } else if (choice.delta && choice.delta.content) {
-                    text = choice.delta.content;
-                    console.log("🩰 Fawn: Взял из choices[0].delta.content");
-                }
-            } 
-            // Прямой доступ к content
-            else if (response.content) {
-                text = response.content;
-                console.log("🩰 Fawn: Взял из response.content");
-            } 
-            // Формат Anthropic Claude
-            else if (response.completion) {
-                text = response.completion;
-                console.log("🩰 Fawn: Взял из response.completion (Claude)");
+        // Простая обработка результата как в рабочем примере
+        if (result && result.choices && result.choices.length > 0) {
+            if (result.choices[0].message && result.choices[0].message.content) {
+                text = result.choices[0].message.content;
+                console.log("[Fawn] Текст извлечен из choices[0].message.content");
+            } else if (result.choices[0].text) {
+                text = result.choices[0].text;
+                console.log("[Fawn] Текст извлечен из choices[0].text");
             }
-            // Другие форматы
-            else if (response.message && response.message.content) {
-                text = response.message.content;
-                console.log("🩰 Fawn: Взял из response.message.content");
-            } else if (response.text) {
-                text = response.text;
-                console.log("🩰 Fawn: Взял из response.text");
-            } else if (response.mes) {
-                text = response.mes;
-                console.log("🩰 Fawn: Взял из response.mes");
-            } else if (response.response) {
-                // Рекурсивный поиск в response.response
-                const innerResponse = response.response;
-                if (typeof innerResponse === "string") {
-                    text = innerResponse;
-                } else if (innerResponse && typeof innerResponse === "object") {
-                    if (innerResponse.content) {
-                        text = innerResponse.content;
-                    } else if (innerResponse.text) {
-                        text = innerResponse.text;
-                    } else if (innerResponse.mes) {
-                        text = innerResponse.mes;
-                    }
-                }
-                console.log("🩰 Fawn: Взял из response.response");
-            }
-            
-            // Если ничего не нашли, попробуем преобразовать весь объект в строку
-            if (!text) {
-                try {
-                    text = JSON.stringify(response);
-                } catch (e) {
-                    console.log("🩰 Fawn: Не удалось преобразовать объект в строку");
-                }
-            }
+        } else if (result && result.content) {
+            text = result.content;
+            console.log("[Fawn] Текст извлечен из result.content");
+        } else if (result && result.response) {
+            text = result.response;
+            console.log("[Fawn] Текст извлечен из result.response");
         }
 
-        // Чистим от think тегов и лишних пробелов
+        // Если текст пустой, проверяем другие варианты
+        if (!text && typeof result === "string") {
+            text = result;
+            console.log("[Fawn] Текст взят как строка");
+        }
+
+        // Чистим текст
         if (text) {
             text = text
                 .replace(/<think>[\s\S]*?<\/think>/gi, '')
                 .replace(/<think>[\s\S]*/gi, '')
                 .replace(/<\/think>/gi, '')
-                .replace(/\\n/g, '\n')  // Заменяем экранированные переносы строк
-                .replace(/`/g, '')      // Удаляем обратные кавычки
                 .trim();
-            
-            // Также удаляем возможные обертки в квадратные скобки
-            text = text.replace(/^\[OOC[^\]]*\]\s*/i, '').replace(/\[END OOC.*\]/gi, '');
-            
-            // Удаляем лишние пробелы и переносы
-            text = text.replace(/\n\s*\n/g, '\n').trim();
         }
 
-        console.log("🩰 Fawn: Финальный текст:", text);
-        console.log("🩰 Fawn: Длина:", text ? text.length : 0);
+        console.log("[Fawn] Финальный текст:", text);
+        console.log("[Fawn] Длина текста:", text ? text.length : 0);
 
-        // Более либеральная проверка - может быть короткий но валидный текст
-        if (text && text.length > 10 && !text.includes("undefined") && !text.includes("null") && 
-            text !== "{}" && text !== "[]" && !text.startsWith("{")) {
-            console.log("🩰 Fawn: Показываю превью!");
+        if (text && text.length > 10) {
+            console.log("[Fawn] Показываю превью!");
             showPreviewPopup(text, type);
         } else {
-            console.log("🩰 Fawn: Текст пустой или некорректный, ручной ввод");
-            console.log("🩰 Fawn: text =", text);
+            console.log("[Fawn] Текст пустой или слишком короткий, ручной ввод");
             showManualInputPopup(type);
         }
 
     } catch (error) {
-        console.error("🩰 Fawn: ОШИБКА:", error);
+        console.error("[Fawn] ОШИБКА:", error);
         toastr.error("Ошибка: " + error.message);
         showManualInputPopup(type);
     } finally {
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
-        console.log("🩰 Fawn: === КОНЕЦ ===");
+        console.log("[Fawn] === КОНЕЦ ===");
     }
 }
 
@@ -437,18 +364,61 @@ function addFawnMenu() {
         return false;
     }
 
-    console.log("🩰 Fawn: Создаю кнопку...");
+    console.log("[Fawn] Создаю кнопку...");
 
     const btn = document.createElement("div");
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative;";
+    btn.style.cssText = `
+        cursor: pointer;
+        padding: 10px;
+        color: var(--SmartThemeQuoteColor);
+        font-size: 18px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s;
+    `;
+    
+    btn.addEventListener("mouseenter", function() {
+        btn.style.opacity = "0.8";
+    });
+    
+    btn.addEventListener("mouseleave", function() {
+        btn.style.opacity = "1";
+    });
 
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
-    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:9999; min-width:120px; font-size:14px;";
-    menu.innerHTML = '<div class="fawn-option" data-action="timeskip" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px;">🩰 Time Skip</div><div class="fawn-option" data-action="twist" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px;">🥀 Plot Twist</div><div style="border-top:1px solid var(--SmartThemeBorderColor); margin:3px 0;"></div><div class="fawn-option" data-action="settings" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7; border-radius:4px;">⚙️ Настройки</div>';
+    menu.style.cssText = `
+        display: none;
+        position: absolute;
+        bottom: 40px;
+        left: 0;
+        background: var(--SmartThemeBlurTintColor);
+        border: 1px solid var(--SmartThemeBorderColor);
+        border-radius: 8px;
+        padding: 4px;
+        z-index: 9999;
+        min-width: 120px;
+        font-size: 14px;
+        backdrop-filter: blur(10px);
+    `;
+    
+    menu.innerHTML = `
+        <div class="fawn-option" data-action="timeskip" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-clock" style="width:16px;"></i> Time Skip
+        </div>
+        <div class="fawn-option" data-action="twist" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-bolt" style="width:16px;"></i> Plot Twist
+        </div>
+        <div style="border-top:1px solid var(--SmartThemeBorderColor); margin:3px 0;"></div>
+        <div class="fawn-option" data-action="settings" style="padding:6px 10px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7; border-radius:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-gear" style="width:16px;"></i> Настройки
+        </div>
+    `;
 
     btn.appendChild(menu);
     container.insertBefore(btn, container.firstChild);
@@ -479,12 +449,17 @@ function addFawnMenu() {
 
         opt.addEventListener("mouseenter", function() {
             opt.style.background = "var(--SmartThemeQuoteColor)";
-            opt.style.opacity = "0.8";
+            opt.style.opacity = "0.9";
+            opt.style.color = "var(--SmartThemeBlurTintColor)";
         });
 
         opt.addEventListener("mouseleave", function() {
             opt.style.background = "transparent";
-            opt.style.opacity = "1";
+            opt.style.opacity = "";
+            if (opt.getAttribute("data-action") === "settings") {
+                opt.style.opacity = "0.7";
+            }
+            opt.style.color = "var(--SmartThemeBodyColor)";
         });
     }
 
@@ -492,7 +467,7 @@ function addFawnMenu() {
         menu.style.display = "none";
     });
 
-    console.log("🩰 Fawn: Кнопка создана!");
+    console.log("[Fawn] Кнопка создана!");
     return true;
 }
 
@@ -507,14 +482,21 @@ eventSource.on(event_types.MESSAGE_SWIPED, function() {
 
 // ========== ЗАПУСК ==========
 jQuery(function() {
-    console.log("🩰 Fawn: jQuery ready!");
+    console.log("[Fawn] Инициализация...");
     loadSettings();
 
-    const tryAdd = setInterval(function() {
-        if (addFawnMenu()) {
-            clearInterval(tryAdd);
-        }
-    }, 1000);
+    // Пробуем добавить кнопку сразу
+    if (!addFawnMenu()) {
+        // Если не получилось, пробуем каждую секунду
+        const tryAdd = setInterval(function() {
+            if (addFawnMenu()) {
+                clearInterval(tryAdd);
+                console.log("[Fawn] Инициализация завершена!");
+            }
+        }, 1000);
+    } else {
+        console.log("[Fawn] Инициализация завершена!");
+    }
 });
 
-console.log("🩰 Fawn: Файл загружен!");
+console.log("[Fawn] Файл загружен!");
