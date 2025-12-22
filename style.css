@@ -1,189 +1,72 @@
-/* Fawn Plot Driver - Clean Blur Only */
+/* Fawn Plot Driver - МИНИМАЛЬНЫЙ */
 #fawn-plot-btn {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.4);
-    backdrop-filter: blur(20px);
-    border: 2px solid transparent;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    margin: 4px;
-    z-index: 100;
+    width: 48px !important;
+    height: 48px !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.4) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 2px solid transparent !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    margin: 4px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
 }
 
 #fawn-plot-btn:hover {
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.6);
-    border-color: var(--SmartThemeQuoteColor);
-    transform: translateY(-2px);
-}
-
-#fawn-plot-btn i {
-    font-size: 20px;
-    color: var(--SmartThemeQuoteColor);
-}
-
-#fawn-plot-btn i.fa-spin {
-    color: var(--SmartThemeAccentColor);
+    border-color: var(--SmartThemeQuoteColor) !important;
+    transform: translateY(-2px) !important;
 }
 
 #fawn-menu {
-    position: fixed;
-    z-index: 10000;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.9);
-    backdrop-filter: blur(25px);
-    border: 2px solid var(--SmartThemeBorderColor);
-    border-radius: 20px;
-    padding: 12px;
-    min-width: 220px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    display: none;
+    position: fixed !important;
+    z-index: 10000 !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.9) !important;
+    backdrop-filter: blur(25px) !important;
+    border: 2px solid var(--SmartThemeBorderColor) !important;
+    border-radius: 20px !important;
+    padding: 12px !important;
+    min-width: 220px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+    display: none !important;
 }
 
 .fawn-option {
-    padding: 14px 16px;
-    margin: 4px 0;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--SmartThemeBodyColor);
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
+    padding: 14px 16px !important;
+    margin: 4px 0 !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    color: var(--SmartThemeBodyColor) !important;
 }
 
 .fawn-option:hover {
-    background: rgba(var(--SmartThemeQuoteColorRGB), 0.15);
-    border-color: var(--SmartThemeQuoteColor);
-    color: var(--SmartThemeQuoteColor);
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.15) !important;
+    color: var(--SmartThemeQuoteColor) !important;
 }
 
-#fawn-last-ooc-option {
-    color: var(--SmartThemeAccentColor);
-    font-style: italic;
-    border-left: 3px solid var(--SmartThemeAccentColor);
-    padding-left: 20px;
-}
-
-/* Только блюр-фон для попапов */
 #fawn-popup-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(12px);
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0,0,0,0.6) !important;
+    backdrop-filter: blur(12px) !important;
 }
 
-/* Попапы без анимаций */
-#fawn-popup > div:not(#fawn-popup-bg),
-.fawn-popup-content {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.85);
-    backdrop-filter: blur(30px);
-    border: 2px solid var(--SmartThemeBorderColor);
-    border-radius: 24px;
-    padding: 32px;
-    max-width: 90vw;
-    max-height: 90vh;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.6);
-    overflow-y: auto;
-}
-
-.fawn-popup-title {
-    font-size: 24px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 24px;
-    color: var(--SmartThemeQuoteColor);
-}
-
-.fawn-popup-textarea,
-#fawn-ooc-text,
-#fawn-manual-ooc,
-#fawn-manual-text {
-    width: 100%;
-    min-height: 100px;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.4);
-    backdrop-filter: blur(15px);
-    border: 2px solid rgba(var(--SmartThemeBorderColorRGB), 0.5);
-    border-radius: 16px;
-    padding: 16px;
-    color: var(--SmartThemeBodyColor);
-    font-size: 15px;
-    resize: vertical;
-    box-sizing: border-box;
-}
-
-.fawn-popup-textarea:focus,
-#fawn-ooc-text:focus,
-#fawn-manual-ooc:focus,
-#fawn-manual-text:focus {
-    border-color: var(--SmartThemeQuoteColor);
-    outline: none;
-}
-
-.fawn-popup-label {
-    display: block;
-    margin: 0 0 12px 0;
-    font-weight: 600;
-    color: var(--SmartThemeQuoteColor);
-}
-
-.fawn-popup-buttons,
-div[style*="display:flex; gap:10px"] {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin: 24px 0 12px 0;
-}
-
-/* Кнопки без лишнего */
-[id^="fawn-"] .menu_button,
-.fawn-popup-buttons .menu_button {
-    padding: 14px 24px;
-    border: none;
-    border-radius: 14px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.6);
-    color: var(--SmartThemeBodyColor);
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-}
-
-[id^="fawn-"] .menu_button:hover,
-.fawn-popup-buttons .menu_button:hover {
-    background: rgba(var(--SmartThemeQuoteColorRGB), 0.2);
-    border-color: var(--SmartThemeQuoteColor);
-    color: var(--SmartThemeQuoteColor);
-}
-
-#fawn-set-msgcount {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.5);
-    outline: none;
-    -webkit-appearance: none;
-}
-
-#fawn-set-msgcount::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--SmartThemeQuoteColor);
-    cursor: pointer;
+#fawn-popup > div:not(#fawn-popup-bg) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: rgba(var(--SmartThemeBlurMainColorRGB), 0.85) !important;
+    backdrop-filter: blur(30px) !important;
+    border: 2px solid var(--SmartThemeBorderColor) !important;
+    border-radius: 24px !important;
+    padding: 32px !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.6) !important;
 }
