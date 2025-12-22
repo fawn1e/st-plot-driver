@@ -10,7 +10,8 @@ const extensionName = "plot-driver-fawn";
 const defaultSettings = {
     timeskipPrompt: "You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly. Write 2-3 sentences as OOC direction.",
     twistPrompt: "You are a genius narrative stylist. Introduce an unexpected but logical plot twist. Write 2-3 sentences as OOC direction.",
-    messageCount: 15
+    messageCount: 15,
+    useRawGeneration: true // Новая опция
 };
 
 if (!extension_settings[extensionName]) {
@@ -106,6 +107,16 @@ function showSettingsPopup() {
                 <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="width:100%; accent-color:var(--SmartThemeQuoteColor);">
             </div>
 
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">
+                    <input type="checkbox" id="fawn-set-useraw" ${s.useRawGeneration ? 'checked' : ''} style="margin-right:8px;">
+                    ⚡ Игнорировать пресет (сырая генерация)
+                </label>
+                <div style="color:var(--SmartThemeBodyColor); opacity:0.7; font-size:12px; margin-top:4px;">
+                    Если включено, генерация будет игнорировать стиль персонажа и пресет. Используйте, если в ответах появляется текст пресета.
+                </div>
+            </div>
+
             <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button id="fawn-set-save" class="menu_button">💾 Сохранить</button>
                 <button id="fawn-set-reset" class="menu_button">🔄 Сбросить</button>
@@ -123,6 +134,7 @@ function showSettingsPopup() {
         extension_settings[extensionName].timeskipPrompt = document.getElementById("fawn-set-timeskip").value;
         extension_settings[extensionName].twistPrompt = document.getElementById("fawn-set-twist").value;
         extension_settings[extensionName].messageCount = parseInt(document.getElementById("fawn-set-msgcount").value);
+        extension_settings[extensionName].useRawGeneration = document.getElementById("fawn-set-useraw").checked;
         saveSettings();
         toastr.success("Настройки сохранены! ✨");
         closePopup();
@@ -133,6 +145,7 @@ function showSettingsPopup() {
         document.getElementById("fawn-set-twist").value = defaultSettings.twistPrompt;
         document.getElementById("fawn-set-msgcount").value = defaultSettings.messageCount;
         document.getElementById("fawn-msg-count-label").textContent = defaultSettings.messageCount;
+        document.getElementById("fawn-set-useraw").checked = defaultSettings.useRawGeneration;
         toastr.info("Сброшено! ✨");
     });
 
@@ -280,16 +293,46 @@ async function drivePlot(type) {
             ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
-        const finalPrompt = instruction + "\n\nRecent story (last " + msgCount + " messages):\n" + chatHistory + "\n\nWrite ONLY the OOC direction. 2-3 sentences.";
+        // Усиленный промпт с четкими инструкциями
+        const finalPrompt = `[SYSTEM INSTRUCTION: You are a narrative driver. Ignore all character personalities, settings, and previous context. Your task is to generate ONLY an OOC (Out Of Character) plot direction based on the chat history provided. Do NOT write in-character responses. Do NOT continue the story. Only provide OOC direction.]
+
+${instruction}
+
+Recent story (last ${msgCount} messages):
+${chatHistory}
+
+IMPORTANT: Write ONLY the OOC direction in 2-3 sentences. Format: (OOC: [your direction here])`;
 
         console.log("[Fawn] Отправляю запрос...");
 
-        // Упрощенный вызов как в рабочем примере
-        const result = await generateQuietPrompt({
-            prompt: finalPrompt,
-            silent: true,
-            disablePromptCache: false,
-        });
+        let result;
+        
+        // Проверяем, нужно ли использовать сырую генерацию
+        if (extension_settings[extensionName].useRawGeneration) {
+            console.log("[Fawn] Использую сырую генерацию (игнорирование пресета)");
+            
+            // Способ 1: Попробуем передать дополнительные параметры для игнорирования контекста
+            result = await generateQuietPrompt({
+                prompt: finalPrompt,
+                silent: true,
+                disablePromptCache: false,
+                // Попробуем эти параметры для игнорирования пресета
+                useCharacterPersona: false,
+                useSystemPrompt: false,
+                useStoryString: false,
+                useExampleDialogs: false,
+                useAuthorNote: false,
+                useWorldInfo: false,
+                forceRaw: true
+            });
+        } else {
+            // Обычная генерация
+            result = await generateQuietPrompt({
+                prompt: finalPrompt,
+                silent: true,
+                disablePromptCache: false
+            });
+        }
 
         console.log("[Fawn] Результат получен:", result);
 
@@ -320,11 +363,45 @@ async function drivePlot(type) {
 
         // Чистим текст
         if (text) {
+            // Удаляем HTML теги (как в примере из пресета)
+            text = text.replace(/<[^>]*>/g, '');
+            
+            // Удаляем think теги
             text = text
                 .replace(/<think>[\s\S]*?<\/think>/gi, '')
                 .replace(/<think>[\s\S]*/gi, '')
                 .replace(/<\/think>/gi, '')
                 .trim();
+            
+            // Удаляем возможные даты и форматирование (как в примере)
+            text = text.replace(/\d{2}\/\d{2}\/\d{2}.*?\d{2}:\d{2}/g, '');
+            text = text.replace(/DETROIT.*?LE RÊVE ÉVEILLÉ/g, '');
+            
+            // Если все еще есть HTML-подобное форматирование, удаляем
+            text = text.replace(/style="[^"]*"/g, '');
+            text = text.replace(/<div[^>]*>/g, '');
+            text = text.replace(/<\/div>/g, '');
+            text = text.replace(/<span[^>]*>/g, '');
+            text = text.replace(/<\/span>/g, '');
+            text = text.replace(/font-family:[^;]+;/g, '');
+            text = text.replace(/color:[^;]+;/g, '');
+            text = text.replace(/background:[^;]+;/g, '');
+            text = text.replace(/padding:[^;]+;/g, '');
+            text = text.replace(/border[^;]+;/g, '');
+            text = text.replace(/margin[^;]+;/g, '');
+            text = text.replace(/text-align[^;]+;/g, '');
+            text = text.replace(/letter-spacing[^;]+;/g, '');
+            text = text.replace(/opacity[^;]+;/g, '');
+            text = text.replace(/font-weight[^;]+;/g, '');
+            
+            // Удаляем лишние пробелы и переносы
+            text = text.replace(/\n\s*\n/g, '\n').trim();
+            
+            // Если текст все еще выглядит как продолжение истории, а не OOC инструкция
+            if (!text.includes('(OOC') && !text.includes('OOC:') && !text.includes('Out of character')) {
+                // Обернем в OOC формат
+                text = `(OOC: ${text})`;
+            }
         }
 
         console.log("[Fawn] Финальный текст:", text);
