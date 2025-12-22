@@ -1,120 +1,145 @@
-## Fawn's Plot Driver 📝
-An AI-powered narrative control extension for SillyTavern that helps generate plot-driving OOC (Out Of Character) instructions.
-**Author's Note**: I'm not a professional coder, so please explain any issues in simple terms! <3
+# Fawn's Plot Driver 📝
 
-## Features ✨
-- **AI-Generated Plot Control**: Automatically generates OOC instructions for time skips and plot twists
-- **Smart Context Awareness**: Uses recent chat history to create contextually relevant directions
-- **Customizable Prompts**: Fine-tune the AI's instructions for different narrative styles
-- **Preferences System**: Add specific details or requirements before generation
-- **Minimalist Design**: Clean, theme-adaptive interface that matches SillyTavern
-- **Manual Input Option**: Full control with manual OOC input when needed
+An AI-powered narrative control extension for SillyTavern that helps generate plot-driving OOC (Out Of Character) instructions.  
+**Author's Note**: I'm not a professional coder, so please explain any issues in simple terms! 💖
 
-## Installation 🚀
+---
+
+## ✨ Features
+
+- **AI-Generated Plot Control**: Automatically generates OOC instructions for time skips and plot twists.
+- **Chat-Aware Storage**: Remembers your last OOC and active prompts per chat.
+- **Smart Context Awareness**: Uses recent chat history to create relevant directions.
+- **Customizable Prompts**: Fine-tune AI instructions for different narrative styles.
+- **Preferences System**: Add specific details or requirements before generation.
+- **Minimalist & Responsive Design**: Clean, theme-adaptive interface that works on desktop and mobile.
+- **Manual Input Option**: Full control with manual OOC input when needed.
+- **One-Click OOC Clear**: Quickly remove active OOC prompts.
+
+---
+
+## 🚀 Installation
+
 ### Easy Installation (Recommended)
-1. In SillyTavern, go to **Extensions → Install Extension**
+1. In SillyTavern, go to **Extensions → Install Extension**.
 2. Paste this URL:  
    `https://github.com/fawn1e/st-plot-driver.git`
-3. Click **Install**
-4. Restart SillyTavern
+3. Click **Install**.
+4. Restart SillyTavern.
 
 ### Manual Installation
-1. Download the extension files
+1. Download the extension files.
 2. Place them in your SillyTavern extensions folder:
    ```
    SillyTavern/public/scripts/extensions/third-party/plot-driver-fawn/
    ```
-3. Restart SillyTavern
+3. Restart SillyTavern.
 
-That's it! You should now see a pen icon (`✒️`) in your chat interface.
+That’s it! You should now see a pen icon (`✒️`) in your chat interface.
 
-## Usage 📖
-![interface](menu.png)
+---
+
+## 📖 Usage
+
 ### Basic Usage
-1. Click the pen icon (`fa-pen-nib`) in the chat interface
+1. Click the **pen icon** (`fa-pen-nib`) in the chat interface.
 2. Choose from:
-   - **⏳ Time Skip**: Generate OOC instructions for narrative time jumps
-   - **⚡ Plot Twist**: Create unexpected plot developments
-   - **✍️ Manual Input**: Write custom OOC instructions
-   - **⏰ Last OOC**: View and re-use your last generated OOC
-   - **⚙️ Settings**: Customize prompts and settings
+   - **⏳ Time Skip**: Generate OOC instructions for narrative time jumps.
+   - **⚡ Plot Twist**: Create unexpected plot developments.
+   - **⏰ Last OOC**: View and re-use your last generated OOC for this chat.
+   - **🧹 Clear OOC**: Remove the currently active OOC prompt.
+   - **✍️ Manual Input**: Write custom OOC instructions.
+   - **⚙️ Settings**: Customize prompts and settings.
 
 ### Preferences System
-![interface](prefs.png)
 
 Before generation, you can specify preferences:
-- **Skip to specific times** (morning, evening, next week)
-- **Add character details** (specific NPCs, locations, events)
-- **Set plot requirements** (twist types, emotional tone, outcomes)
+- **Skip to specific times** (morning, evening, next week).
+- **Add character details** (specific NPCs, locations, events).
+- **Set plot requirements** (twist types, emotional tone, outcomes).
 
 Simply enter your preferences in the popup before generation!
 
 ### OOC Preview & Editing
-![generation](generation.png)
 
 After generation:
-1. Review the AI-generated OOC
-2. Edit the text if needed
-3. Apply to send as a system prompt
-4. Regenerate if unsatisfied
+1. Review the AI-generated OOC.
+2. Edit the text if needed.
+3. Apply to send as a system prompt.
+4. Regenerate if unsatisfied.
 
-## Settings ⚙️
+---
+
+## ⚙️ Settings
+
 Access settings via the menu to customize:
-![settings](settings.png)
 
 ### Prompt Customization
-- **Time Skip Prompt**: Default: "You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly."
-- **Plot Twist Prompt**: Default: "You are a genius narrative stylist. Introduce an unexpected but logical plot twist."
+- **Time Skip Prompt**: Default: *"You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly. Write 2–3 sentences as OOC direction."*
+- **Plot Twist Prompt**: Default: *"You are a genius narrative stylist. Introduce an unexpected but logical plot twist. Write 2–3 sentences as OOC direction."*
 
 ### Context Settings
-- **Message Count**: Number of recent messages to use for context (5-50)
-- Default: 15 messages
+- **Message Count**: Number of recent messages to use for context (5–50).  
+  Default: 15 messages.
 
-## How It Works 🔧
-1. **Context Collection**: Gathers recent chat messages based on your settings
-2. **Prompt Assembly**: Combines your preferences with AI instructions
-3. **AI Generation**: Sends the prompt to your configured AI backend
-4. **OOC Extraction**: Parses the response to extract clean OOC instructions
-5. **Prompt Application**: Adds the OOC as a system prompt for the next AI response
+Settings are saved **per chat**, so you can have different configurations for different stories.
 
-## Best Practices 💡
+---
+
+## 🔧 How It Works
+
+1. **Chat Detection**: Automatically detects the current chat and loads its specific settings/OOC history.
+2. **Context Collection**: Gathers recent chat messages based on your settings.
+3. **Prompt Assembly**: Combines your preferences with AI instructions.
+4. **AI Generation**: Sends the prompt to your configured AI backend.
+5. **OOC Extraction**: Parses the response to extract clean OOC instructions.
+6. **Prompt Application**: Adds the OOC as a system prompt for the next AI response.
+7. **Storage**: Saves the OOC locally for later reuse in the same chat.
+
+---
+
+## 💡 Best Practices
 
 ### For Time Skips:
-- Be specific about duration ("skip to next morning")
-- Mention important events ("after they arrive at the castle")
-- Include environmental changes ("as the seasons change")
+- Be specific about duration (*"skip to next morning"*).
+- Mention important events (*"after they arrive at the castle"*).
+- Include environmental changes (*"as the seasons change"*).
 
 ### For Plot Twists:
-- Suggest twist types ("betrayal", "revelation", "unexpected ally")
-- Set emotional tone ("dramatic", "subtle", "shocking")
-- Consider character development implications
+- Suggest twist types (*"betrayal"*, *"revelation"*, *"unexpected ally"*).
+- Set emotional tone (*"dramatic"*, *"subtle"*, *"shocking"*).
+- Consider character development implications.
 
 ### General Tips:
-- Use preferences for specific requirements
-- Edit generated OOC to match your exact needs
-- Combine multiple OOC instructions for complex narratives
-- Save frequently used preferences as templates
+- Use preferences for specific requirements.
+- Edit generated OOC to match your exact needs.
+- Combine multiple OOC instructions for complex narratives.
+- Use **Last OOC** to reapply previously successful prompts.
 
-## Troubleshooting 🔧
+---
+
+## 🐛 Troubleshooting
 
 ### Common Issues:
 
-**Issue**: OOC not generating properly
-**Solution**: Check your AI backend connection and token limits
+**Issue**: Menu not appearing  
+**Solution**: Try restarting SillyTavern. Ensure you’re on version 1.10.0+.
 
-**Issue**: Preferences not being considered
-**Solution**: Ensure preferences are clearly written and relevant to context
+**Issue**: OOC not generating  
+**Solution**: Check your AI backend connection and token limits.
 
-**Issue**: Menu not appearing
-**Solution**: Try restarting SillyTavern and check console for errors
+**Issue**: Preferences not being considered  
+**Solution**: Write clear, concise preferences relevant to the context.
 
-**Issue**: Something else broken?
+**Issue**: Something else broken?  
 **Solution**: I'm still learning! Please describe the issue in simple terms so I can understand and fix it. 🙏
 
-### Simple Debug Mode:
-Check your browser console (F12) for messages starting with "Fawn Plot Driver:"
+### Debug Mode:
+Check your browser console (**F12 → Console**) for messages starting with `"Fawn Plot Driver:"`.
 
-## Technical Details 🛠️
+---
+
+## 🛠️ Technical Details
 
 ### Dependencies:
 - SillyTavern 1.10.0+
@@ -125,37 +150,41 @@ Check your browser console (F12) for messages starting with "Fawn Plot Driver:"
 ```
 plot-driver-fawn/
 ├── index.js          # Main extension logic
-├── script.js         # Additional functionality
 ├── manifest.json     # Extension metadata
 └── README.md         # This file
 ```
 
 ### API Integration:
-Uses SillyTavern's extension API:
+Uses SillyTavern’s extension API:
 - `generateQuietPrompt()` for AI calls
 - `setExtensionPrompt()` for OOC application
 - `getContext()` for chat history access
+- `localStorage` for per-chat persistence
 
-## Support & Feedback 💬
+---
 
-**Important**: I'm not a professional developer! If you find issues or have suggestions:
+## 💬 Support & Feedback
 
-1. Please explain them in simple, beginner-friendly terms
-2. Be patient - I'm learning as I go
-3. Feel free to suggest improvements
+**Important**: I’m not a professional developer! If you find issues or have suggestions:
+
+1. Please explain them in simple, beginner-friendly terms.
+2. Be patient—I’m learning as I go.
+3. Feel free to suggest improvements.
 
 You can:
-- Report issues on GitHub
-- Join my [Telegram channel](https://t.me/dearfawwn) to see any bugs fixed or announcements of updates (It also has bots recommendations, my preset updates and general stuff so be ready to dig)
-- Contact me directly in Telegram
+- Report issues on GitHub.
+- Join my [Telegram channel](https://t.me/dearfawwn) for updates, bot recommendations, preset releases, and general chatter.
+- Contact me directly on Telegram.
 
-## Credits 🙏
+---
 
-- **Author**: fawn1e 
+## 🙏 Credits
+
+- **Author**: fawn1e
 - **Inspired by**: Narrative control tools and AI writing assistants
-- **Built for**: SillyTavern community
+- **Built for**: The SillyTavern community
 - **Special Thanks**: Everyone who's been patient with my learning journey
 
 ---
 
-*Happy storytelling with Fawn's Plot Driver! May your narratives flow smoothly and your plot twists be perfectly timed.* 🩰✨
+*Happy storytelling with Fawn’s Plot Driver! May your narratives flow smoothly and your plot twists be perfectly timed.* 🩰✨
