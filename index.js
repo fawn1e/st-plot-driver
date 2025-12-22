@@ -288,9 +288,18 @@ async function drivePlot(type) {
         console.log("🩰 Fawn: ====== ОТВЕТ ======");
         console.log("🩰 Fawn: typeof =", typeof response);
         console.log("🩰 Fawn: value =", response);
-
-        if (typeof response === "object" && response !== null) {
+        
+        if (response && typeof response === "object") {
             console.log("🩰 Fawn: keys =", Object.keys(response));
+            if (response.choices && Array.isArray(response.choices)) {
+                console.log("🩰 Fawn: choices[0] =", response.choices[0]);
+                if (response.choices[0] && typeof response.choices[0] === "object") {
+                    console.log("🩰 Fawn: choices[0].message =", response.choices[0].message);
+                    if (response.choices[0].message) {
+                        console.log("🩰 Fawn: message.content =", response.choices[0].message.content);
+                    }
+                }
+            }
         }
         console.log("🩰 Fawn: ===================");
         // =============================
@@ -302,7 +311,7 @@ async function drivePlot(type) {
             text = response;
             console.log("🩰 Fawn: Взял как строку");
         } else if (response && typeof response === "object") {
-            // Попробуем разные возможные пути к тексту
+            // Обработка формата Chat Completion API (OpenAI, Claude и др.)
             if (response.choices && Array.isArray(response.choices) && response.choices[0]) {
                 const choice = response.choices[0];
                 if (choice.message && choice.message.content) {
@@ -314,11 +323,23 @@ async function drivePlot(type) {
                 } else if (choice.content) {
                     text = choice.content;
                     console.log("🩰 Fawn: Взял из choices[0].content");
+                } else if (choice.delta && choice.delta.content) {
+                    text = choice.delta.content;
+                    console.log("🩰 Fawn: Взял из choices[0].delta.content");
                 }
-            } else if (response.content) {
+            } 
+            // Прямой доступ к content
+            else if (response.content) {
                 text = response.content;
                 console.log("🩰 Fawn: Взял из response.content");
-            } else if (response.message && response.message.content) {
+            } 
+            // Формат Anthropic Claude
+            else if (response.completion) {
+                text = response.completion;
+                console.log("🩰 Fawn: Взял из response.completion (Claude)");
+            }
+            // Другие форматы
+            else if (response.message && response.message.content) {
                 text = response.message.content;
                 console.log("🩰 Fawn: Взял из response.message.content");
             } else if (response.text) {
@@ -360,17 +381,23 @@ async function drivePlot(type) {
                 .replace(/<think>[\s\S]*?<\/think>/gi, '')
                 .replace(/<think>[\s\S]*/gi, '')
                 .replace(/<\/think>/gi, '')
+                .replace(/\\n/g, '\n')  // Заменяем экранированные переносы строк
+                .replace(/`/g, '')      // Удаляем обратные кавычки
                 .trim();
             
             // Также удаляем возможные обертки в квадратные скобки
             text = text.replace(/^\[OOC[^\]]*\]\s*/i, '').replace(/\[END OOC.*\]/gi, '');
+            
+            // Удаляем лишние пробелы и переносы
+            text = text.replace(/\n\s*\n/g, '\n').trim();
         }
 
         console.log("🩰 Fawn: Финальный текст:", text);
         console.log("🩰 Fawn: Длина:", text ? text.length : 0);
 
         // Более либеральная проверка - может быть короткий но валидный текст
-        if (text && text.length > 2 && !text.includes("undefined") && !text.includes("null")) {
+        if (text && text.length > 10 && !text.includes("undefined") && !text.includes("null") && 
+            text !== "{}" && text !== "[]" && !text.startsWith("{")) {
             console.log("🩰 Fawn: Показываю превью!");
             showPreviewPopup(text, type);
         } else {
