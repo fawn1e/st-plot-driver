@@ -1,4 +1,5 @@
-console.log("🩰 Fawn: Загрузка...");
+console.log('Fawn Plot Driver: Initializing...');
+
 import { extension_settings, getContext } from "../../../extensions.js";
 import { generateQuietPrompt } from "../../../../script.js";
 import { setExtensionPrompt, extension_prompt_types, extension_prompt_roles } from "../../../../script.js";
@@ -8,7 +9,7 @@ const extensionName = "plot-driver-fawn";
 const defaultSettings = {
     timeskipPrompt: "You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly. Write 2-3 sentences as OOC direction.",
     twistPrompt: "You are a genius narrative stylist. Introduce an unexpected but logical plot twist. Write 2-3 sentences as OOC direction.",
-    messageCount: 15  // Для getContext()
+    messageCount: 15
 };
 
 if (!extension_settings[extensionName]) {
@@ -16,8 +17,6 @@ if (!extension_settings[extensionName]) {
 }
 
 let lastType = null;
-let isGenerating = false;
-let debounceTimer = null;
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
@@ -41,7 +40,10 @@ function closePopup() {
 
 // ========== ДОБАВИТЬ OOC ПРОМПТ ==========
 function addPlotPrompt(text) {
-    const prompt = `[OOC INSTRUCTION FROM PLOT DRIVER] ${text} [END OOC - incorporate this naturally into your next response]`;
+    const prompt = `[OOC INSTRUCTION FROM PLOT DRIVER]
+${text}
+[END OOC - incorporate this naturally into your next response]`;
+
     setExtensionPrompt(
         'fawn-plot-driver',
         prompt,
@@ -68,147 +70,335 @@ function clearPlotPrompt() {
     );
 }
 
-// ========== ГЕНЕРАЦИЯ OOC ==========
-function generateOOC(type) {
-    if (isGenerating) return;
-    
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        if (lastType !== type) {
-            const prompt = extension_settings[extensionName][`${type}Prompt`];
-            addPlotPrompt(prompt);
-            lastType = type;
-            isGenerating = true;
-            updateButtonState(true);
-            console.log(`🩰 Fawn: ${type.toUpperCase()} активирован`);
-        }
-    }, 300);
-}
-
-// ========== СБРОС ==========
-function resetState() {
-    clearTimeout(debounceTimer);
-    if (isGenerating) {
-        clearPlotPrompt();
-    }
-    lastType = null;
-    isGenerating = false;
-    updateButtonState(false);
-}
-
-// ========== UPDATE КНОПОК ==========
-function updateButtonState(generating) {
-    const timeskipBtn = document.getElementById('fawn-timeskip-btn');
-    const twistBtn = document.getElementById('fawn-twist-btn');
-    
-    if (timeskipBtn) {
-        timeskipBtn.disabled = generating;
-        timeskipBtn.style.opacity = generating ? '0.5' : '1';
-        timeskipBtn.innerHTML = generating ? '⏳ OOC...' : '⏭️ Timeskip';
-    }
-    if (twistBtn) {
-        twistBtn.disabled = generating;
-        twistBtn.style.opacity = generating ? '0.5' : '1';
-        twistBtn.innerHTML = generating ? '⏳ OOC...' : '🔀 Twist';
-    }
-}
-
-// ========== НАСТРОЙКИ ==========
+// ========== ОКНО НАСТРОЕК ==========
 function showSettingsPopup() {
     closePopup();
     const s = extension_settings[extensionName];
+
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div style="position:fixed;top:20%;left:20%;width:450px;background:#2a2a2a;color:white;padding:20px;border:1px solid #555;border-radius:8px;z-index:10000;box-shadow:0 4px 20px rgba(0,0,0,0.8);font-family:Arial,sans-serif;max-height:70vh;overflow-y:auto;">
-            <h3 style="margin:0 0 15px 0;border-bottom:1px solid #444;padding-bottom:10px;">🩰 Fawn Plot Driver</h3>
-            
-            <div style="margin-bottom:15px;">
-                <label style="display:block;margin-bottom:5px;font-weight:bold;">⏭️ Timeskip промпт:</label>
-                <textarea id="timeskip-prompt" style="width:100%;height:80px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:4px;padding:8px;font-size:12px;font-family:monospace;">${s.timeskipPrompt}</textarea>
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeBorderColor); border-radius:15px; padding:25px; z-index:99999; width:500px; max-width:90%; max-height:80vh; overflow-y:auto;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:20px; text-align:center; margin-bottom:20px;">
+                ⚙️ Настройки Fawn's Plot Driver
             </div>
-            
-            <div style="margin-bottom:15px;">
-                <label style="display:block;margin-bottom:5px;font-weight:bold;">🔀 Twist промпт:</label>
-                <textarea id="twist-prompt" style="width:100%;height:80px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:4px;padding:8px;font-size:12px;font-family:monospace;">${s.twistPrompt}</textarea>
-            </div>
-            
             <div style="margin-bottom:20px;">
-                <label style="display:block;margin-bottom:5px;font-weight:bold;">📊 Сообщений в контексте:</label>
-                <input id="msg-count" type="number" min="5" max="50" value="${s.messageCount}" style="width:80px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:4px;padding:6px;font-size:14px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">🩰 Промпт для Time Skip:</label>
+                <textarea id="fawn-set-timeskip" style="width:100%; height:80px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical;">${s.timeskipPrompt}</textarea>
             </div>
-            
-            <div style="text-align:right;">
-                <button onclick="fawnSaveSettings()" style="margin-right:10px;background:#4a90e2;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">💾 Сохранить</button>
-                <button onclick="fawnClosePopup()" style="background:#666;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;">❌ Закрыть</button>
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">🥀 Промпт для Plot Twist:</label>
+                <textarea id="fawn-set-twist" style="width:100%; height:80px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical;">${s.twistPrompt}</textarea>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">📜 Сколько сообщений: <span id="fawn-msg-count-label">${s.messageCount}</span></label>
+                <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="width:100%; accent-color:var(--SmartThemeQuoteColor);">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <button id="fawn-set-save" class="menu_button">💾 Сохранить</button>
+                <button id="fawn-set-reset" class="menu_button">🔄 Сбросить</button>
+                <button id="fawn-set-close" class="menu_button">✖ Закрыть</button>
             </div>
         </div>
     `;
     document.body.appendChild(popup);
+
+    document.getElementById("fawn-set-msgcount").addEventListener("input", function(e) {
+        document.getElementById("fawn-msg-count-label").textContent = e.target.value;
+    });
+
+    document.getElementById("fawn-set-save").addEventListener("click", function() {
+        extension_settings[extensionName].timeskipPrompt = document.getElementById("fawn-set-timeskip").value;
+        extension_settings[extensionName].twistPrompt = document.getElementById("fawn-set-twist").value;
+        extension_settings[extensionName].messageCount = parseInt(document.getElementById("fawn-set-msgcount").value);
+        saveSettings();
+        toastr.success("Настройки сохранены! ✨");
+        closePopup();
+    });
+
+    document.getElementById("fawn-set-reset").addEventListener("click", function() {
+        document.getElementById("fawn-set-timeskip").value = defaultSettings.timeskipPrompt;
+        document.getElementById("fawn-set-twist").value = defaultSettings.twistPrompt;
+        document.getElementById("fawn-set-msgcount").value = defaultSettings.messageCount;
+        document.getElementById("fawn-msg-count-label").textContent = defaultSettings.messageCount;
+        toastr.info("Сброшено! ✨");
+    });
+
+    document.getElementById("fawn-set-close").addEventListener("click", closePopup);
+    document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
-window.fawnSaveSettings = function() {
-    extension_settings[extensionName].timeskipPrompt = document.getElementById('timeskip-prompt').value;
-    extension_settings[extensionName].twistPrompt = document.getElementById('twist-prompt').value;
-    extension_settings[extensionName].messageCount = parseInt(document.getElementById('msg-count').value) || 15;
-    saveSettings();
+// ========== ПЕРЕПИСАННОЕ ПРЕВЬЮ - ТОЛЬКО OOC ==========
+function showOOCPreview(text, type) {
     closePopup();
-    console.log("🩰 Fawn: Настройки сохранены");
-};
 
-window.fawnClosePopup = closePopup;
-
-// ========== ХУКИ ==========
-eventSource.on(event_types.CHAT_CHANGED, () => {
-    resetState();
-});
-
-eventSource.on(event_types.MESSAGE_RECEIVED, (message) => {
-    setTimeout(() => {
-        if (isGenerating) {
-            resetState();
-        }
-    }, 2000);
-});
-
-// ========== КНОПКИ (ОРИГИНАЛЬНАЯ ЛОГИКА) ==========
-jQuery(() => {
-    // Settings кнопка (как в оригинале)
-    const settingsBtn = $(`
-        <div class="fa-icon-button settings-button" 
-             style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;"
-             title="Fawn Plot Driver">
-            <i class="fa-solid fa-ballet-positions"></i>
+    const title = type === 'timeskip' ? '🩰 Time Skip OOC' : '🥀 Plot Twist OOC';
+    
+    const popup = document.createElement("div");
+    popup.id = "fawn-popup";
+    popup.innerHTML = `
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeQuoteColor); border-radius:15px; padding:20px; z-index:99999; width:520px; max-width:90%;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:20px; text-align:center; margin-bottom:12px; font-weight:bold;">
+                ${title}
+            </div>
+            <div style="color:var(--SmartThemeBodyColor); text-align:center; margin-bottom:18px; opacity:0.9; font-size:14px;">
+                Сгенерировано нейронкой. Отредактируй если нужно:
+            </div>
+            <div style="background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeQuoteColor); border-radius:10px; padding:15px; margin-bottom:15px; min-height:120px;">
+                <textarea id="fawn-ooc-text" style="width:100%; height:100px; background:transparent; border:none; color:var(--SmartThemeQuoteColor); font-family:monospace; font-size:14px; resize:vertical; outline:none;">${text}</textarea>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;">
+                <button id="fawn-apply-ooc" class="menu_button" style="background:var(--SmartThemeQuoteColor); color:white; padding:12px 20px; font-size:16px;">✅ ПРИМЕНИТЬ OOC</button>
+                <button id="fawn-regen-ooc" class="menu_button" style="padding:12px 20px;">🔄 Новая генерация</button>
+                <button id="fawn-cancel" class="menu_button">❌ Отмена</button>
+            </div>
+            <div style="font-size:12px; color:var(--SmartThemeBodyColor); opacity:0.7; text-align:center;">
+                Применит как системную инструкцию боту
+            </div>
         </div>
-    `);
-    settingsBtn.on('click', showSettingsPopup);
-    $('body').append(settingsBtn);
+    `;
+    document.body.appendChild(popup);
 
-    // Timeskip кнопка
-    const timeskipBtn = $(`
-        <div id="fawn-timeskip-btn" class="fa-icon-button" 
-             style="position: fixed; bottom: 100px; right: 20px; z-index: 10000; background: linear-gradient(135deg, #ff6b6b, #ff8e8e) !important;"
-             title="Timeskip OOC">⏭️</div>
-    `);
-    timeskipBtn.on('click', () => generateOOC('timeskip'));
-    $('body').append(timeskipBtn);
+    document.getElementById("fawn-apply-ooc").addEventListener("click", function() {
+        const finalOOC = document.getElementById("fawn-ooc-text").value.trim();
+        if (finalOOC) {
+            addPlotPrompt(finalOOC);
+            closePopup();
+            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} применен! Отправь сообщение боту 🩰✨`);
+        }
+    });
 
-    // Twist кнопка
-    const twistBtn = $(`
-        <div id="fawn-twist-btn" class="fa-icon-button" 
-             style="position: fixed; bottom: 100px; right: 140px; z-index: 10000; background: linear-gradient(135deg, #4ecdc4, #44a08d) !important;"
-             title="Twist OOC">🔀</div>
-    `);
-    twistBtn.on('click', () => generateOOC('twist'));
-    $('body').append(twistBtn);
+    document.getElementById("fawn-regen-ooc").addEventListener("click", function() {
+        closePopup();
+        setTimeout(() => drivePlot(lastType), 150);
+    });
 
+    document.getElementById("fawn-cancel").addEventListener("click", closePopup);
+    document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
+}
+
+// ========== РУЧНОЙ OOC ==========
+function showManualOOC(type) {
+    const defaultOOC = type === 'timeskip' 
+        ? '(OOC: Time passes naturally. Describe what happens next.)'
+        : '(OOC: Introduce an unexpected plot twist. Make it logical.)';
+
+    closePopup();
+    
+    const popup = document.createElement("div");
+    popup.id = "fawn-popup";
+    popup.innerHTML = `
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeBorderColor); border-radius:15px; padding:20px; z-index:99999; width:450px; max-width:90%;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:18px; text-align:center;">${type === 'timeskip' ? '🩰 Time Skip' : '🥀 Plot Twist'}</div>
+            <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:15px 0; padding:12px; border:2px solid var(--SmartThemeBorderColor); border-radius:8px; background:var(--SmartThemeBlurTintColor); color:var(--SmartThemeBodyColor); resize:vertical;">${defaultOOC}</textarea>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeQuoteColor);">✅ Применить OOC</button>
+                <button id="fawn-regen" class="menu_button">🔄 Попробовать снова</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    document.getElementById("fawn-apply-manual").addEventListener("click", function() {
+        const oocText = document.getElementById("fawn-manual-ooc").value.trim();
+        if (oocText) {
+            addPlotPrompt(oocText);
+            closePopup();
+            toastr.success("OOC применен вручную! 🩰");
+        }
+    });
+
+    document.getElementById("fawn-regen").addEventListener("click", function() {
+        closePopup();
+        setTimeout(() => drivePlot(lastType), 100);
+    });
+
+    document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
+}
+
+// ========== ГЛАВНАЯ ФУНКЦИЯ ==========
+async function drivePlot(type) {
+    console.log('Fawn Plot Driver: Generating OOC...');
+
+    lastType = type;
+
+    const button = document.getElementById("fawn-plot-btn");
+    if (button) {
+        button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
+    }
+
+    try {
+        const context = getContext();
+        const msgCount = extension_settings[extensionName].messageCount || 15;
+
+        if (!context?.chat?.length) {
+            toastr.warning("Начни чат сначала! 💕");
+            return;
+        }
+
+        const chatHistory = context.chat.slice(-msgCount).map(m => {
+            const name = m.is_user ? 'User' : (m.name || 'Character');
+            const cleanMes = m.mes.replace(/<[^>]*>/g, '').trim();
+            return `${name}: ${cleanMes}`;
+        }).join('\n');
+
+        const instruction = type === 'timeskip' 
+            ? extension_settings[extensionName].timeskipPrompt 
+            : extension_settings[extensionName].twistPrompt;
+
+        const oocPrompt = `TASK: ${instruction}
+
+CONTEXT (last ${msgCount} messages):
+${chatHistory}
+
+RULES:
+- Write ONLY OOC direction (2-3 sentences max)
+- Format: (OOC: your direction here)
+- NO roleplay, NO character speech, NO descriptions
+- Example: (OOC: Time passes as they walk through the forest. Night falls and they find a campsite.)
+
+OOC:`;
+
+        const response = await generateQuietPrompt(oocPrompt, false, false);
+        let oocText = extractOOC(response);
+
+        if (oocText && !oocText.includes('OOC:')) {
+            oocText = `(OOC: ${oocText.trim()})`;
+        }
+
+        if (oocText?.length > 5) {
+            showOOCPreview(oocText, type);
+        } else {
+            toastr.warning("OOC не сгенерировался 😅");
+            showManualOOC(type);
+        }
+
+    } catch (error) {
+        console.error(' Fawn: Error:', error);
+        toastr.error("Ошибка генерации OOC");
+        showManualOOC(type);
+    } finally {
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-star"></i>';
+        }
+    }
+}
+
+// ========== ИЗВЛЕЧЕНИЕ OOC ==========
+function extractOOC(response) {
+    let text = '';
+
+    if (typeof response === 'string') {
+        text = response;
+    } else if (response?.choices?.[0]?.message?.content) {
+        text = response.choices[0].message.content;
+    } else if (response?.choices?.[0]?.text) {
+        text = response.choices[0].text;
+    } else if (response?.content) {
+        text = response.content;
+    } else if (response?.text) {
+        text = response.text;
+    }
+
+    return text
+        ?.replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<\/?think[^>]*>/gi, '')
+        .replace(/^\s*\n/gm, '')
+        .trim()
+        .substring(0, 300);
+}
+
+// ========== ИСПРАВЛЕННАЯ КНОПКА ==========
+function addFawnMenu() {
+    if (document.getElementById("fawn-plot-btn")) return true;
+
+    const container = document.getElementById("leftSendForm") || 
+                     document.getElementById("form_sheld") || 
+                     document.querySelector("#send_form");
+
+    if (!container) return false;
+
+    const btn = document.createElement("div");
+    btn.id = "fawn-plot-btn";
+    btn.title = "Fawn's Plot Driver";
+    btn.innerHTML = '<i class="fa-solid fa-star"></i>';
+    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative; z-index:1000;";
+
+    const menu = document.createElement("div");
+    menu.id = "fawn-menu";
+    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:1001; min-width:120px;";
+    menu.innerHTML = `
+        <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🩰 Time Skip</div>
+        <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🥀 Plot Twist</div>
+        <hr style="border:none; border-top:1px solid var(--SmartThemeBorderColor); margin:5px 0;">
+        <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7;">⚙️ Настройки</div>
+    `;
+
+    btn.appendChild(menu);
+    container.insertBefore(btn, container.firstChild);
+
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closePopup();
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+
+    menu.querySelectorAll(".fawn-option").forEach(opt => {
+        opt.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.style.display = "none";
+            const action = this.dataset.action;
+            if (action === "settings") {
+                showSettingsPopup();
+            } else {
+                drivePlot(action);
+            }
+        });
+        
+        opt.addEventListener("mouseenter", function() {
+            this.style.background = "var(--SmartThemeQuoteColor)";
+            this.style.color = "white";
+        });
+        opt.addEventListener("mouseleave", function() {
+            this.style.background = "";
+            this.style.color = "var(--SmartThemeBodyColor)";
+        });
+    });
+
+    const globalClickHandler = function(e) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = "none";
+        }
+    };
+    
+    document.removeEventListener("click", globalClickHandler);
+    setTimeout(() => {
+        document.addEventListener("click", globalClickHandler);
+    }, 100);
+
+    return true;
+}
+
+// ========== СОБЫТИЯ ==========
+eventSource.on(event_types.MESSAGE_RECEIVED, clearPlotPrompt);
+eventSource.on(event_types.MESSAGE_SWIPED, clearPlotPrompt);
+
+// 🔥 ЗАЩИТА КНОПКИ
+setInterval(() => {
+    if (!document.getElementById('fawn-plot-btn')) {
+        addFawnMenu();
+    }
+}, 10);
+
+// ========== ЗАПУСК ==========
+jQuery(() => {
     loadSettings();
-    console.log("🩰 Fawn: Готово! Кнопки восстановлены");
-});
-
-// Hover эффекты
-$(document).on('mouseenter', '#fawn-timeskip-btn, #fawn-twist-btn', function() {
-    $(this).css('transform', 'scale(1.05)');
-}).on('mouseleave', '#fawn-timeskip-btn, #fawn-twist-btn', function() {
-    $(this).css('transform', 'scale(1)');
+    const interval = setInterval(() => {
+        if (addFawnMenu()) clearInterval(interval);
+    }, 100);
 });
