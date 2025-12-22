@@ -40,7 +40,6 @@ function closePopup() {
     const popup = document.getElementById("fawn-popup");
     if (popup) {
         popup.remove();
-        // Удаляем обработчик ESC
         document.removeEventListener('keydown', function(e) {
             if (e.key === 'Escape') closePopup();
         });
@@ -116,7 +115,7 @@ function checkActiveOOCPrompt() {
     return false;
 }
 
-// ========== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ POPUP (ИСПРАВЛЕННАЯ) ==========
+// ========== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ POPUP ==========
 function createPopup(content, width = "500px") {
     closePopup();
     
@@ -158,16 +157,12 @@ function createPopup(content, width = "500px") {
     `;
     
     document.body.appendChild(popup);
-    
-    // Блокируем скролл под попапом
     document.body.style.overflow = 'hidden';
     
-    // Закрытие по клику на фон
     document.getElementById("fawn-popup-bg").addEventListener("click", function() {
         closePopup();
     });
     
-    // Закрытие по ESC
     const closeOnEsc = function(e) {
         if (e.key === 'Escape') {
             closePopup();
@@ -764,8 +759,8 @@ function showManualInputPopup() {
                 <i class="fa-solid fa-tag fa-xs"></i> OOC Type:
             </div>
             <select id="fawn-manual-type" style="width:100%; padding:10px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; color:var(--SmartThemeBodyColor); font-size:13px; font-family:monospace;">
-                <option value="timeskip">⏳ Time Skip</option>
-                <option value="twist">⚡ Plot Twist</option>
+                <option value="timeskip">Time Skip</option>
+                <option value="twist">Plot Twist</option>
             </select>
         </div>
         <div style="margin-bottom:20px;">
@@ -1065,16 +1060,6 @@ eventSource.on(event_types.MESSAGE_SWIPED, function() {
     clearPlotPrompt();
     updateMenuState();
 });
-
-// ========== ДЕБАГ ФУНКЦИЯ ==========
-function debugMenuState() {
-    console.log('=== Fawn Plot Driver Debug ===');
-    console.log('lastGeneratedOOC:', lastGeneratedOOC);
-    console.log('hasActiveOOC:', checkActiveOOCPrompt());
-    console.log('Last OOC element:', document.getElementById("fawn-last-ooc-option"));
-    console.log('Clear OOC element:', document.getElementById("fawn-clear-ooc-option"));
-    console.log('=============================');
-}
 
 // ========== ЗАПУСК ==========
 jQuery(() => {
