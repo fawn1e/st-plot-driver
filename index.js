@@ -12,19 +12,17 @@ if (!extension_settings[extensionName]) {
 }
 
 let lastType = null;
-let isGenerating = false;  // <-- Флаг чтобы не запускать дважды
+let isGenerating = false;
 
 // ========== ЗАКРЫТЬ POPUP ==========
 function closePopup() {
     const popup = document.getElementById("fawn-popup");
-    if (popup) {
-        popup.remove();
-    }
+    if (popup) popup.remove();
 }
 
 // ========== ОКОШКО ПРЕВЬЮ ==========
 function showPreviewPopup(text, type) {
-    closePopup();  // Сначала закрываем старое
+    closePopup();
 
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
@@ -45,7 +43,6 @@ function showPreviewPopup(text, type) {
     `;
     document.body.appendChild(popup);
 
-    // Вставить
     document.getElementById("fawn-ok").addEventListener("click", () => {
         const finalText = document.getElementById("fawn-preview-text").value;
         const textarea = document.getElementById('send_textarea');
@@ -55,28 +52,21 @@ function showPreviewPopup(text, type) {
         toastr.success("Вставлено! 🩰");
     });
 
-    // Перегенерировать
     document.getElementById("fawn-redo").addEventListener("click", () => {
         closePopup();
-        setTimeout(() => drivePlot(lastType), 100);  // <-- Маленькая задержка!
+        setTimeout(() => drivePlot(lastType), 100);
     });
 
-    // Отмена
-    document.getElementById("fawn-no").addEventListener("click", () => {
-        closePopup();
-    });
-
-    // Клик по фону
-    document.getElementById("fawn-popup-bg").addEventListener("click", () => {
-        closePopup();
-    });
+    document.getElementById("fawn-no").addEventListener("click", closePopup);
+    document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
 // ========== ГЛАВНАЯ ФУНКЦИЯ ==========
 async function drivePlot(type) {
-    // Если уже генерируем — выходим
+    console.log("=== Fawn: Старт! Тип:", type, "===");
+
     if (isGenerating) {
-        console.log("Fawn: Уже генерирую, подожди!");
+        console.log("Fawn: Уже генерирую, выхожу");
         return;
     }
 
@@ -109,42 +99,58 @@ async function drivePlot(type) {
 Recent story:
 ${chatHistory}
 
-Write ONLY the OOC direction itself. 2-3 sentences maximum.
-DO NOT use <think> tags. DO NOT explain your reasoning. Just write the scene direction.`;
+Write ONLY the OOC direction. 2-3 sentences. No thinking, no explanations.`;
 
         console.log("Fawn: Отправляю запрос...");
+
         const response = await generateQuietPrompt(finalPrompt);
-        console.log("Fawn: Получил ответ:", response);
 
-        if (response) {
-            // Чистим от <think> тегов
-            let clean = response
-                .replace(/<think>[\s\S]*?<\/think>/gi, '')
-                .replace(/<think>[\s\S]*/gi, '')
-                .replace(/<\/think>/gi, '')
-                .trim();
+        // ===== ОТЛАДКА =====
+        console.log("Fawn: === ОТВЕТ ===");
+        console.log("Fawn: typeof =", typeof response);
+        console.log("Fawn: value =", response);
+        console.log("Fawn: JSON =", JSON.stringify(response));
+        console.log("Fawn: =============");
+        // ===================
 
-            if (!clean) {
-                toastr.warning("Попробуй ещё раз! 🔄");
-                return;
-            }
+        // Проверяем разные варианты ответа
+        let text = "";
 
-            showPreviewPopup(clean, type);
+        if (typeof response === "string") {
+            text = response;
+        } else if (response && typeof response === "object") {
+            // Может это объект с полем text, message, content и т.д.
+            text = response.text || response.message || response.content || response.mes || "";
         }
+
+        // Чистим от think тегов
+        text = text
+            .replace(/<think>[\s\S]*?<\/think>/gi, '')
+            .replace(/<think>[\s\S]*/gi, '')
+            .replace(/<\/think>/gi, '')
+            .trim();
+
+        console.log("Fawn: Очищенный текст:", text);
+
+        if (text) {
+            showPreviewPopup(text, type);
+        } else {
+            toastr.warning("Пустой ответ, попробуй ещё раз! 🔄");
+        }
+
     } catch (error) {
-        console.error("Fawn Error:", error);
+        console.error("Fawn ОШИБКА:", error);
         toastr.error("Ошибка: " + error.message);
     } finally {
-        // ВСЕГДА сбрасываем состояние!
         isGenerating = false;
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
-        console.log("Fawn: Готов к следующему запросу!");
+        console.log("Fawn: Готов!");
     }
 }
 
-// ========== КНОПКА ==========
+// ========== КНОПКА — НЕ ТРОГАЕМ! ==========
 function addFawnMenu() {
     if (document.getElementById("fawn-plot-btn")) return true;
 
@@ -192,8 +198,7 @@ function addFawnMenu() {
 
     btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const isVisible = menu.style.display === "block";
-        menu.style.display = isVisible ? "none" : "block";
+        menu.style.display = menu.style.display === "none" ? "block" : "none";
     });
 
     menu.querySelectorAll(".fawn-option").forEach(opt => {
