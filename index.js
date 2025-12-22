@@ -29,9 +29,7 @@ function loadSettings() {
         if (saved) {
             extension_settings[extensionName] = { ...defaultSettings, ...JSON.parse(saved) };
         }
-    } catch (e) {
-        console.log("🩰 Fawn: Используем дефолтные настройки");
-    }
+    } catch (e) {}
 }
 
 // ========== ЗАКРЫТЬ POPUP ==========
@@ -56,8 +54,6 @@ ${text}
         null,
         extension_prompt_roles.SYSTEM
     );
-
-    console.log("🩰 Fawn: OOC промпт добавлен:", text);
 }
 
 // ========== ОЧИСТИТЬ OOC ПРОМПТ ==========
@@ -72,7 +68,6 @@ function clearPlotPrompt() {
         null,
         extension_prompt_roles.SYSTEM
     );
-    console.log("🩰 Fawn: OOC промпт очищен");
 }
 
 // ========== ОКНО НАСТРОЕК ==========
@@ -166,7 +161,6 @@ function showOOCPreview(text, type) {
     `;
     document.body.appendChild(popup);
 
-    // ✅ ПРИМЕНИТЬ OOC (ГЛАВНАЯ КНОПКА)
     document.getElementById("fawn-apply-ooc").addEventListener("click", function() {
         const finalOOC = document.getElementById("fawn-ooc-text").value.trim();
         if (finalOOC) {
@@ -176,7 +170,6 @@ function showOOCPreview(text, type) {
         }
     });
 
-    // 🔄 НОВАЯ ГЕНЕРАЦИЯ
     document.getElementById("fawn-regen-ooc").addEventListener("click", function() {
         closePopup();
         setTimeout(() => drivePlot(lastType), 150);
@@ -184,110 +177,6 @@ function showOOCPreview(text, type) {
 
     document.getElementById("fawn-cancel").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
-}
-
-// ========== ПЕРЕПИСАННАЯ ГЛАВНАЯ ФУНКЦИЯ ==========
-async function drivePlot(type) {
-    console.log("🩰 Fawn: === ГЕНЕРАЦИЯ OOC ===");
-    console.log("🩰 Fawn: Тип:", type);
-
-    lastType = type;
-
-    const button = document.getElementById("fawn-plot-btn");
-    if (button) {
-        button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
-    }
-
-    try {
-        const context = getContext();
-        const msgCount = extension_settings[extensionName].messageCount || 15;
-
-        if (!context?.chat?.length) {
-            toastr.warning("Начни чат сначала! 💕");
-            return;
-        }
-
-        // ЧИСТЫЙ КОНТЕКСТ ДЛЯ OOC
-        const chatHistory = context.chat.slice(-msgCount).map(m => {
-            const name = m.is_user ? 'User' : (m.name || 'Character');
-            const cleanMes = m.mes.replace(/<[^>]*>/g, '').trim();
-            return `${name}: ${cleanMes}`;
-        }).join('\n');
-
-        const instruction = type === 'timeskip' 
-            ? extension_settings[extensionName].timeskipPrompt 
-            : extension_settings[extensionName].twistPrompt;
-
-        // СТРОГИЙ ПРОМПТ ДЛЯ OOC
-        const oocPrompt = `TASK: ${instruction}
-
-CONTEXT (last ${msgCount} messages):
-${chatHistory}
-
-RULES:
-- Write ONLY OOC direction (2-3 sentences max)
-- Format: (OOC: your direction here)
-- NO roleplay, NO character speech, NO descriptions
-- Example: (OOC: Time passes as they walk through the forest. Night falls and they find a campsite.)
-
-OOC:`;
-
-        console.log("🩰 Fawn: Генерирую OOC...");
-        console.log("🩰 Fawn: Промпт (первые 200 символов):", oocPrompt.substring(0, 200));
-
-        const response = await generateQuietPrompt(oocPrompt, false, false);
-
-        console.log("🩰 Fawn: СЫРЫЙ ОТВЕТ:", JSON.stringify(response));
-
-        let oocText = extractOOC(response);
-
-        // Гарантированно форматируем как OOC
-        if (oocText && !oocText.includes('OOC:')) {
-            oocText = `(OOC: ${oocText.trim()})`;
-        }
-
-        console.log("🩰 Fawn: ЧИСТЫЙ OOC:", oocText);
-
-        if (oocText?.length > 5) {
-            showOOCPreview(oocText, type);
-        } else {
-            toastr.warning("OOC не сгенерировался 😅");
-            showManualOOC(type);
-        }
-
-    } catch (error) {
-        console.error("🩰 Fawn: ОШИБКА:", error);
-        toastr.error("Ошибка генерации OOC");
-        showManualOOC(type);
-    } finally {
-        if (button) {
-            button.innerHTML = '<i class="fa-solid fa-star"></i>';
-        }
-    }
-}
-
-// ========== ИЗВЛЕЧЕНИЕ OOC ИЗ ОТВЕТА ==========
-function extractOOC(response) {
-    let text = '';
-
-    if (typeof response === 'string') {
-        text = response;
-    } else if (response?.choices?.[0]?.message?.content) {
-        text = response.choices[0].message.content;
-    } else if (response?.choices?.[0]?.text) {
-        text = response.choices[0].text;
-    } else if (response?.content) {
-        text = response.content;
-    } else if (response?.text) {
-        text = response.text;
-    }
-
-    return text
-        ?.replace(/<think>[\s\S]*?<\/think>/gi, '')
-        .replace(/<\/?think[^>]*>/gi, '')
-        .replace(/^\s*\n/gm, '')
-        .trim()
-        .substring(0, 300); // лимит длины
 }
 
 // ========== РУЧНОЙ OOC ==========
@@ -330,7 +219,99 @@ function showManualOOC(type) {
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
-// ========== КНОПКА ==========
+// ========== ГЛАВНАЯ ФУНКЦИЯ ==========
+async function drivePlot(type) {
+    console.log("🩰 Fawn: Генерация OOC...");
+
+    lastType = type;
+
+    const button = document.getElementById("fawn-plot-btn");
+    if (button) {
+        button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
+    }
+
+    try {
+        const context = getContext();
+        const msgCount = extension_settings[extensionName].messageCount || 15;
+
+        if (!context?.chat?.length) {
+            toastr.warning("Начни чат сначала! 💕");
+            return;
+        }
+
+        const chatHistory = context.chat.slice(-msgCount).map(m => {
+            const name = m.is_user ? 'User' : (m.name || 'Character');
+            const cleanMes = m.mes.replace(/<[^>]*>/g, '').trim();
+            return `${name}: ${cleanMes}`;
+        }).join('\n');
+
+        const instruction = type === 'timeskip' 
+            ? extension_settings[extensionName].timeskipPrompt 
+            : extension_settings[extensionName].twistPrompt;
+
+        const oocPrompt = `TASK: ${instruction}
+
+CONTEXT (last ${msgCount} messages):
+${chatHistory}
+
+RULES:
+- Write ONLY OOC direction (2-3 sentences max)
+- Format: (OOC: your direction here)
+- NO roleplay, NO character speech, NO descriptions
+- Example: (OOC: Time passes as they walk through the forest. Night falls and they find a campsite.)
+
+OOC:`;
+
+        const response = await generateQuietPrompt(oocPrompt, false, false);
+        let oocText = extractOOC(response);
+
+        if (oocText && !oocText.includes('OOC:')) {
+            oocText = `(OOC: ${oocText.trim()})`;
+        }
+
+        if (oocText?.length > 5) {
+            showOOCPreview(oocText, type);
+        } else {
+            toastr.warning("OOC не сгенерировался 😅");
+            showManualOOC(type);
+        }
+
+    } catch (error) {
+        console.error("🩰 Fawn: Ошибка:", error);
+        toastr.error("Ошибка генерации OOC");
+        showManualOOC(type);
+    } finally {
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-star"></i>';
+        }
+    }
+}
+
+// ========== ИЗВЛЕЧЕНИЕ OOC ==========
+function extractOOC(response) {
+    let text = '';
+
+    if (typeof response === 'string') {
+        text = response;
+    } else if (response?.choices?.[0]?.message?.content) {
+        text = response.choices[0].message.content;
+    } else if (response?.choices?.[0]?.text) {
+        text = response.choices[0].text;
+    } else if (response?.content) {
+        text = response.content;
+    } else if (response?.text) {
+        text = response.text;
+    }
+
+    return text
+        ?.replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<\/?think[^>]*>/gi, '')
+        .replace(/^\s*\n/gm, '')
+        .trim()
+        .substring(0, 300);
+}
+
+// ========== ИСПРАВЛЕННАЯ КНОПКА ==========
 function addFawnMenu() {
     if (document.getElementById("fawn-plot-btn")) return true;
 
@@ -344,11 +325,11 @@ function addFawnMenu() {
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative;";
+    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative; z-index:1000;";
 
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
-    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:9999; min-width:120px;";
+    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:1001; min-width:120px;";
     menu.innerHTML = `
         <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🩰 Time Skip</div>
         <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🥀 Plot Twist</div>
@@ -359,28 +340,47 @@ function addFawnMenu() {
     btn.appendChild(menu);
     container.insertBefore(btn, container.firstChild);
 
-    // Клик по кнопке
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
         e.stopPropagation();
-        menu.style.display = menu.style.display === "none" ? "block" : "none";
+        closePopup();
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
     });
 
-    // Клик по опциям
     menu.querySelectorAll(".fawn-option").forEach(opt => {
-        opt.addEventListener("click", (e) => {
+        opt.addEventListener("click", function(e) {
+            e.preventDefault();
             e.stopPropagation();
             menu.style.display = "none";
-            const action = opt.dataset.action;
+            const action = this.dataset.action;
             if (action === "settings") {
                 showSettingsPopup();
             } else {
                 drivePlot(action);
             }
         });
+        
+        opt.addEventListener("mouseenter", function() {
+            this.style.background = "var(--SmartThemeQuoteColor)";
+            this.style.color = "white";
+        });
+        opt.addEventListener("mouseleave", function() {
+            this.style.background = "";
+            this.style.color = "var(--SmartThemeBodyColor)";
+        });
     });
 
-    document.addEventListener("click", () => menu.style.display = "none");
-    console.log("🩰 Fawn: Кнопка создана!");
+    const globalClickHandler = function(e) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = "none";
+        }
+    };
+    
+    document.removeEventListener("click", globalClickHandler);
+    setTimeout(() => {
+        document.addEventListener("click", globalClickHandler);
+    }, 100);
+
     return true;
 }
 
@@ -388,13 +388,17 @@ function addFawnMenu() {
 eventSource.on(event_types.MESSAGE_RECEIVED, clearPlotPrompt);
 eventSource.on(event_types.MESSAGE_SWIPED, clearPlotPrompt);
 
+// 🔥 ЗАЩИТА КНОПКИ
+setInterval(() => {
+    if (!document.getElementById('fawn-plot-btn')) {
+        addFawnMenu();
+    }
+}, 5000);
+
 // ========== ЗАПУСК ==========
 jQuery(() => {
-    console.log("🩰 Fawn: Запуск!");
     loadSettings();
     const interval = setInterval(() => {
         if (addFawnMenu()) clearInterval(interval);
     }, 1000);
 });
-
-console.log("🩰 Fawn: Готов! ✨");
