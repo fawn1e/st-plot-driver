@@ -1,29 +1,8 @@
-/* ========== ГЛАВНАЯ КНОПКА (КОМПАКТНАЯ) ========== */
-#fawn-plot-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px; 
-    height: 26px;
-    cursor: pointer;
-    border-radius: 6px;
-    margin: 0 4px;
-    transition: all 0.3s ease;
-    color: var(--text-color);
-    opacity: 0.8;
-}
-
-#fawn-plot-btn:hover {
-    opacity: 1;
-    color: var(--pink-color, #ffb7c5);
-    filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
-}
-
-/* ========== АНИМАЦИЯ ПИШУЩЕГО ПЕРА ========== */
+/* Анимация пишущего пера */
 @keyframes writing-glow {
     0% { 
         transform: rotate(0deg) translateY(0px); 
-        color: var(--pink-color, #ffb7c5);
+        color: var(--pink-color, #ffb7c5); /* Используем переменную темы или розовый по умолчанию */
         text-shadow: 0 0 5px var(--mainColorRelativeAlpha); 
     }
     25% { transform: rotate(-15deg) translateY(-2px); }
@@ -35,94 +14,44 @@
     }
 }
 
-.fa-pen-nib.fa-spin, .fawn-writing {
-    animation: writing-glow 0.7s infinite ease-in-out !important;
+.fawn-writing {
+    animation: writing-glow 0.7s infinite ease-in-out;
 }
 
-/* ========== МЕНЮ (BLUR + GLASS) ========== */
-#fawn-menu {
-    display: none;
-    position: fixed;
-    z-index: 10000;
-    background: var(--black75);
+/* Контейнер меню */
+#plot-driver-options {
+    background: var(--black75); /* Стандартный полупрозрачный фон Таверны */
     border: 1px solid var(--pink-color, #ffb7c5);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 10px;
-    padding: 5px;
-    min-width: 180px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-}
-
-.fawn-option {
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    backdrop-filter: blur(5px); /* Модный эффект размытия */
     color: var(--text-color);
 }
 
-.fawn-option:hover {
+/* Пункты меню */
+.plot-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    color: var(--text-color);
+}
+
+.plot-item:hover {
     background: var(--pink-color, #ffb7c5);
-    color: #000 !important;
+    color: #000 !important; /* Текст становится темным на розовом фоне для читаемости */
     padding-left: 15px;
 }
 
-/* ========== ИСПРАВЛЕННЫЕ ПОП-АПЫ (НАСТРОЙКИ) ========== */
-/* Используем универсальный селектор, чтобы не ломать верстку JS */
-.fawn-popup-content, 
-#fawn-popup > div:not(#fawn-popup-bg) {
-    background: var(--black75) !important;
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
-    border: 1px solid var(--pink-color, #ffb7c5) !important;
-    border-radius: 15px !important;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7) !important;
-    color: var(--text-color) !important;
-}
-
-#fawn-popup-bg {
-    background: rgba(0, 0, 0, 0.6) !important;
-    backdrop-filter: blur(3px);
-}
-
-/* ========== МАШИННЫЙ ТЕКСТ (MONOSPACE) ========== */
-.fawn-popup-textarea, 
-#fawn-ooc-text, 
-#fawn-manual-text, 
-#fawn-manual-ooc,
-#fawn-set-timeskip,
-#fawn-set-twist {
-    background: rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid var(--pink-color, #ffb7c5) !important;
-    color: var(--pink-color, #ffb7c5) !important;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
-    font-size: 13px !important;
-    padding: 12px !important;
-    border-radius: 8px !important;
-    outline: none;
-}
-
-/* Заголовки в настройках */
-.fawn-popup-title {
-    color: var(--pink-color, #ffb7c5) !important;
-    text-shadow: 0 0 10px rgba(255, 183, 197, 0.3);
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-/* Слайдер и кнопки */
-input[type=range]#fawn-set-msgcount {
-    accent-color: var(--pink-color, #ffb7c5);
-}
-
-.menu_button {
+/* Иконка на панели */
+#plot-driver-icon {
+    color: var(--text-color); /* Звездочка будет того же цвета, что и остальные кнопки */
     transition: 0.3s;
+    opacity: 0.8;
+}
+
+#plot-driver-icon:hover {
+    opacity: 1;
+    color: var(--pink-color, #ffb7c5);
+    filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
+}
+
 }
 
 .menu_button:hover {
