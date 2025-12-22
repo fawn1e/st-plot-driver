@@ -44,7 +44,11 @@ function closePopup() {
             if (e.key === 'Escape') closePopup();
         });
     }
+    
+    // ФИКС: Восстанавливаем скролл для body
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
 }
 
 // ========== ДОБАВИТЬ OOC ПРОМПТ ==========
@@ -188,6 +192,7 @@ function createPopup(content, width = "500px") {
     const isMobile = window.innerWidth <= 768;
     const maxWidth = isMobile ? "calc(100vw - 40px)" : `min(${width}, 90vw)`;
     
+    // ФИКС ДЛЯ МОБИЛЬНЫХ: используем fixed позиционирование с учетом скролла
     popup.innerHTML = `
         <div id="fawn-popup-bg" style="
             position: fixed;
@@ -199,21 +204,23 @@ function createPopup(content, width = "500px") {
             z-index: 99998;
             touch-action: pan-y;
         "></div>
-        <div style="
+        <div id="fawn-popup-content" style="
             position: fixed;
-            top: 50%;
+            top: ${isMobile ? '20px' : '50%'};
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: ${isMobile ? 'translateX(-50%)' : 'translate(-50%, -50%)'};
             width: ${maxWidth};
-            max-height: ${isMobile ? '85vh' : '80vh'};
+            max-height: ${isMobile ? 'calc(100vh - 40px)' : '80vh'};
             background: var(--SmartThemeBlurTintColor);
             border: 1px solid var(--SmartThemeBorderColor);
-            border-radius: 8px;
-            padding: ${isMobile ? '16px' : '20px'};
+            border-radius: 12px; /* Увеличил радиус для мобильных */
+            padding: ${isMobile ? '20px 16px' : '20px'};
             z-index: 99999;
             box-sizing: border-box;
             overflow-y: auto;
             overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         ">
             ${content}
         </div>
@@ -221,6 +228,12 @@ function createPopup(content, width = "500px") {
     
     document.body.appendChild(popup);
     document.body.style.overflow = 'hidden';
+    
+    // ФИКС: Блокируем скролл для body при открытом попапе на мобильных
+    if (isMobile) {
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+    }
     
     document.getElementById("fawn-popup-bg").addEventListener("click", function() {
         closePopup();
@@ -233,6 +246,14 @@ function createPopup(content, width = "500px") {
         }
     };
     document.addEventListener('keydown', closeOnEsc);
+    
+    // ФИКС: Автофокус на первом инпуте/текстареа
+    setTimeout(() => {
+        const firstInput = popup.querySelector('textarea, input, button');
+        if (firstInput && !firstInput.disabled) {
+            firstInput.focus();
+        }
+    }, 100);
     
     return popup;
 }
@@ -307,73 +328,75 @@ function showSettingsPopup() {
     const isMobile = window.innerWidth <= 768;
     
     const content = `
-        <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '18px' : '16px'}; font-weight:500; margin-bottom:${isMobile ? '24px' : '20px'}; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-sliders"></i> Plot Driver Settings
         </div>
         
-        <div style="margin-bottom:16px;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+        <div style="margin-bottom:${isMobile ? '20px' : '16px'};">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; display:block; margin-bottom:${isMobile ? '8px' : '6px'}; opacity:0.8; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-hourglass-half fa-xs"></i> Time Skip Prompt:
             </div>
-            <textarea id="fawn-set-timeskip" style="width:100%; height:${isMobile ? '70px' : '80px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:10px; color:var(--SmartThemeBodyColor); font-size:13px; resize:vertical; font-family:monospace;">${s.timeskipPrompt}</textarea>
+            <textarea id="fawn-set-timeskip" style="width:100%; height:${isMobile ? '90px' : '80px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:${isMobile ? '14px' : '10px'}; color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; resize:vertical; font-family:monospace; line-height:1.4;">${s.timeskipPrompt}</textarea>
         </div>
         
-        <div style="margin-bottom:16px;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+        <div style="margin-bottom:${isMobile ? '20px' : '16px'};">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; display:block; margin-bottom:${isMobile ? '8px' : '6px'}; opacity:0.8; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-bolt fa-xs"></i> Plot Twist Prompt:
             </div>
-            <textarea id="fawn-set-twist" style="width:100%; height:${isMobile ? '70px' : '80px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:10px; color:var(--SmartThemeBodyColor); font-size:13px; resize:vertical; font-family:monospace;">${s.twistPrompt}</textarea>
+            <textarea id="fawn-set-twist" style="width:100%; height:${isMobile ? '90px' : '80px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:${isMobile ? '14px' : '10px'}; color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; resize:vertical; font-family:monospace; line-height:1.4;">${s.twistPrompt}</textarea>
         </div>
         
-        <div style="margin-bottom:20px;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+        <div style="margin-bottom:${isMobile ? '24px' : '20px'};">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; display:block; margin-bottom:${isMobile ? '8px' : '6px'}; opacity:0.8; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-message fa-xs"></i> Message Count:
             </div>
             <div style="display:flex; align-items:center; gap:10px; ${isMobile ? 'flex-direction: column; align-items: flex-start;' : ''}">
                 <input type="number" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="
                     ${isMobile ? 'width: 100%;' : 'width: 80px;'}
-                    padding:8px 10px; 
+                    padding:${isMobile ? '12px' : '8px 10px'}; 
                     background:var(--SmartThemeInputColor); 
                     border:1px solid var(--SmartThemeBorderColor); 
-                    border-radius:6px; 
+                    border-radius:8px; 
                     color:var(--SmartThemeBodyColor); 
-                    font-size:13px; 
+                    font-size:${isMobile ? '14px' : '13px'}; 
                     font-family:monospace;
                 ">
-                <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.6; ${isMobile ? 'margin-top: 8px;' : ''}">(5-50 messages)</div>
+                <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '13px' : '12px'}; opacity:0.6; ${isMobile ? 'margin-top: 8px;' : ''}">(5-50 messages)</div>
             </div>
         </div>
         
-        <div style="display:flex; gap:8px; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
+        <div style="display:flex; gap:${isMobile ? '10px' : '8px'}; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
             <button id="fawn-set-save" class="menu_button" style="
                 background:var(--SmartThemeButtonColor); 
                 color:var(--SmartThemeButtonTextColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:none; 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : ''}
                 justify-content:center;
+                flex: ${isMobile ? '1' : 'none'};
             ">
                 <i class="fa-solid fa-save"></i> Save
             </button>
             <button id="fawn-set-close" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%;' : ''}
                 justify-content:center;
+                flex: ${isMobile ? '1' : 'none'};
             ">
                 <i class="fa-solid fa-xmark"></i> Close
             </button>
@@ -414,80 +437,80 @@ function showPreferencesPopup(type) {
         : 'Examples:\n• A character reveals a secret\n• Unexpected event occurs\n• Plot direction changes\n• New obstacle appears';
 
     const content = `
-        <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '18px' : '16px'}; font-weight:500; margin-bottom:${isMobile ? '20px' : '16px'}; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid ${icon}"></i> ${title}
         </div>
         
-        <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:16px; opacity:0.8; line-height:1.5;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; margin-bottom:${isMobile ? '20px' : '16px'}; opacity:0.8; line-height:1.5;">
             Add specific details or preferences for this ${type === 'timeskip' ? 'time skip' : 'plot twist'}.
             The AI will incorporate these into the OOC direction.
         </div>
         
-        <div style="margin-bottom:16px;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+        <div style="margin-bottom:${isMobile ? '20px' : '16px'};">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; display:block; margin-bottom:${isMobile ? '8px' : '6px'}; opacity:0.8; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-lightbulb fa-xs"></i> Your Preferences (optional):
             </div>
-            <textarea id="fawn-preferences-text" style="width:100%; height:${isMobile ? '100px' : '120px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical; line-height:1.4;" placeholder="Enter any specific details or requirements..."></textarea>
+            <textarea id="fawn-preferences-text" style="width:100%; height:${isMobile ? '120px' : '120px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:${isMobile ? '14px' : '12px'}; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:${isMobile ? '14px' : '13px'}; resize:vertical; line-height:1.4;" placeholder="Enter any specific details or requirements..."></textarea>
         </div>
         
-        <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; margin-bottom:20px; max-height: ${isMobile ? '120px' : '140px'}; overflow-y: auto;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:12px; font-weight:500; margin-bottom:8px; opacity:0.7; display:flex; align-items:center; gap:6px;">
+        <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:${isMobile ? '14px' : '12px'}; margin-bottom:${isMobile ? '24px' : '20px'}; max-height: ${isMobile ? '140px' : '140px'}; overflow-y: auto;">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '13px' : '12px'}; font-weight:500; margin-bottom:${isMobile ? '10px' : '8px'}; opacity:0.7; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-list fa-xs"></i> ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} Examples:
             </div>
-            <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.6; white-space: pre-line; line-height:1.5; font-family:monospace;">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '13px' : '12px'}; opacity:0.6; white-space: pre-line; line-height:1.5; font-family:monospace;">
                 ${examples}
             </div>
         </div>
         
-        <div style="display:flex; gap:8px; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
+        <div style="display:flex; gap:${isMobile ? '10px' : '8px'}; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
             <button id="fawn-pref-generate" class="menu_button" style="
                 background:var(--SmartThemeButtonColor); 
                 color:var(--SmartThemeButtonTextColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:none; 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> Generate with Preferences
             </button>
             <button id="fawn-pref-skip" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-forward"></i> Skip Preferences
             </button>
             <button id="fawn-pref-close" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-xmark"></i> Close
             </button>
@@ -613,75 +636,75 @@ function showOOCPreview(text, type) {
     const icon = type === 'timeskip' ? 'fa-hourglass-half' : 'fa-bolt';
 
     const content = `
-        <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:12px; display:flex; align-items:center; gap:8px; ${isMobile ? 'flex-wrap: wrap;' : ''}">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '18px' : '16px'}; font-weight:500; margin-bottom:${isMobile ? '16px' : '12px'}; display:flex; align-items:center; gap:8px; ${isMobile ? 'flex-wrap: wrap;' : ''}">
             <i class="fa-solid ${icon}"></i> ${title}
             ${currentPreferences ? '<span style="font-size:11px; background:var(--SmartThemeQuoteColor); color:white; padding:2px 6px; border-radius:10px; margin-left:8px; margin-top:4px;">With Preferences</span>' : ''}
         </div>
-        <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:16px; opacity:0.7;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; margin-bottom:${isMobile ? '20px' : '16px'}; opacity:0.7;">
             AI-generated OOC. Edit if needed:
         </div>
-        <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; margin-bottom:16px; min-height:${isMobile ? '100px' : '120px'};">
-            <textarea id="fawn-ooc-text" style="width:100%; height:${isMobile ? '80px' : '100px'}; background:transparent; border:none; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical; outline:none; line-height:1.4;">${text}</textarea>
+        <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:${isMobile ? '16px' : '12px'}; margin-bottom:${isMobile ? '20px' : '16px'}; min-height:${isMobile ? '120px' : '120px'};">
+            <textarea id="fawn-ooc-text" style="width:100%; height:${isMobile ? '100px' : '100px'}; background:transparent; border:none; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:${isMobile ? '14px' : '13px'}; resize:vertical; outline:none; line-height:1.4;">${text}</textarea>
         </div>
-        <div style="display:flex; gap:8px; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
+        <div style="display:flex; gap:${isMobile ? '10px' : '8px'}; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
             <button id="fawn-apply-ooc" class="menu_button" style="
                 background:var(--SmartThemeButtonColor); 
                 color:var(--SmartThemeButtonTextColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:none; 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-check"></i> Apply OOC
             </button>
             <button id="fawn-regen-ooc" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-rotate"></i> Regenerate
             </button>
             <button id="fawn-cancel" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-xmark"></i> Cancel
             </button>
         </div>
         ${currentPreferences ? `
-        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--SmartThemeBorderColor);">
-            <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.7; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+        <div style="margin-top:${isMobile ? '20px' : '16px'}; padding-top:${isMobile ? '16px' : '16px'}; border-top:1px solid var(--SmartThemeBorderColor);">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '13px' : '12px'}; opacity:0.7; margin-bottom:${isMobile ? '8px' : '6px'}; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-lightbulb fa-xs"></i> Applied Preferences:
             </div>
-            <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.6; background:var(--SmartThemeInputColor); padding:8px; border-radius:4px; font-family:monospace; line-height:1.4; max-height: 80px; overflow-y: auto;">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '13px' : '12px'}; opacity:0.6; background:var(--SmartThemeInputColor); padding:${isMobile ? '10px' : '8px'}; border-radius:4px; font-family:monospace; line-height:1.4; max-height: 80px; overflow-y: auto;">
                 ${currentPreferences}
             </div>
         </div>
@@ -690,43 +713,38 @@ function showOOCPreview(text, type) {
     
     const popup = createPopup(content, "500px");
 
-    // ========== ФИКС 1: СОХРАНЯЕМ OOC КАК ПОСЛЕДНИЙ СГЕНЕРИРОВАННЫЙ ==========
-    // Это нужно чтобы кнопка "Последний OOC" появлялась в меню
+    // ФИКС: Сохраняем OOC как lastGeneratedOOC
     lastGeneratedOOC = { 
         text: text, 
         type: type, 
         preferences: currentPreferences || "" 
     };
     
-    // ========== ФИКС 2: СОХРАНЯЕМ В LOCALSTORAGE ==========
-    // Чтобы OOC не пропадал при перезагрузке страницы
+    // Сохраняем в localStorage
     try {
         localStorage.setItem('fawn_last_ooc', JSON.stringify(lastGeneratedOOC));
-        console.log('Fawn: Сохранён последний OOC в localStorage');
+        console.log('Fawn: Saved OOC to localStorage:', { type, text: text.substring(0, 50) + '...' });
     } catch (e) {
-        console.warn('Fawn: Не удалось сохранить OOC в localStorage:', e);
+        console.warn('Fawn: Could not save OOC to localStorage:', e);
     }
     
-    // ========== ФИКС 3: ОБНОВЛЯЕМ СОСТОЯНИЕ МЕНЮ ==========
-    // Чтобы кнопки "Последний OOC" и "Удалить OOC" обновились
+    // Обновляем состояние меню
     updateMenuState();
 
     document.getElementById("fawn-apply-ooc").addEventListener("click", function() {
         const finalOOC = document.getElementById("fawn-ooc-text").value.trim();
         if (finalOOC) {
-            // ========== ФИКС 4: ОБНОВЛЯЕМ ТЕКСТ ПОСЛЕ РЕДАКТИРОВАНИЯ ==========
             lastGeneratedOOC.text = finalOOC;
             
-            // Сохраняем обновлённую версию
             try {
                 localStorage.setItem('fawn_last_ooc', JSON.stringify(lastGeneratedOOC));
             } catch (e) {
-                console.warn('Fawn: Не удалось сохранить обновлённый OOC:', e);
+                console.warn('Fawn: Could not save updated OOC:', e);
             }
             
             addPlotPrompt(finalOOC);
             closePopup();
-            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} применён`);
+            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} applied`);
         }
     });
 
@@ -749,62 +767,62 @@ function showManualOOC(type) {
     const icon = type === 'timeskip' ? 'fa-hourglass-half' : 'fa-bolt';
 
     const content = `
-        <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '18px' : '16px'}; font-weight:500; margin-bottom:${isMobile ? '20px' : '16px'}; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid ${icon}"></i> ${title}
         </div>
-        <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:12px; opacity:0.7;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; margin-bottom:${isMobile ? '16px' : '12px'}; opacity:0.7;">
             Generation failed. Enter OOC manually:
         </div>
-        <textarea id="fawn-manual-ooc" style="width:100%; height:${isMobile ? '80px' : '100px'}; margin:0 0 16px 0; padding:12px; border:1px solid var(--SmartThemeBorderColor); border-radius:6px; background:var(--SmartThemeInputColor); color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical;">${defaultOOC}</textarea>
-        <div style="display:flex; gap:8px; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
+        <textarea id="fawn-manual-ooc" style="width:100%; height:${isMobile ? '100px' : '100px'}; margin:0 0 ${isMobile ? '20px' : '16px'} 0; padding:${isMobile ? '14px' : '12px'}; border:1px solid var(--SmartThemeBorderColor); border-radius:8px; background:var(--SmartThemeInputColor); color:var(--SmartThemeBodyColor); font-family:monospace; font-size:${isMobile ? '14px' : '13px'}; resize:vertical;">${defaultOOC}</textarea>
+        <div style="display:flex; gap:${isMobile ? '10px' : '8px'}; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
             <button id="fawn-apply-manual" class="menu_button" style="
                 background:var(--SmartThemeButtonColor); 
                 color:var(--SmartThemeButtonTextColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:none; 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-check"></i> Apply OOC
             </button>
             <button id="fawn-try-again" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-rotate"></i> Retry
             </button>
             <button id="fawn-manual-close" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-xmark"></i> Close
             </button>
@@ -845,56 +863,56 @@ function showManualInputPopup() {
     const isMobile = window.innerWidth <= 768;
     
     const content = `
-        <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+        <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '18px' : '16px'}; font-weight:500; margin-bottom:${isMobile ? '24px' : '20px'}; display:flex; align-items:center; gap:8px;">
             <i class="fa-solid fa-keyboard"></i> Manual OOC Input
         </div>
-        <div style="margin-bottom:16px;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+        <div style="margin-bottom:${isMobile ? '20px' : '16px'};">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; display:block; margin-bottom:${isMobile ? '8px' : '6px'}; opacity:0.8; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-tag fa-xs"></i> OOC Type:
             </div>
-            <select id="fawn-manual-type" style="width:100%; padding:10px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; color:var(--SmartThemeBodyColor); font-size:13px; font-family:monospace;">
+            <select id="fawn-manual-type" style="width:100%; padding:${isMobile ? '14px' : '10px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; font-family:monospace;">
                 <option value="timeskip">Time Skip</option>
                 <option value="twist">Plot Twist</option>
             </select>
         </div>
-        <div style="margin-bottom:20px;">
-            <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+        <div style="margin-bottom:${isMobile ? '24px' : '20px'};">
+            <div style="color:var(--SmartThemeBodyColor); font-size:${isMobile ? '14px' : '13px'}; display:block; margin-bottom:${isMobile ? '8px' : '6px'}; opacity:0.8; display:flex; align-items:center; gap:6px;">
                 <i class="fa-solid fa-pen fa-xs"></i> OOC Text:
             </div>
-            <textarea id="fawn-manual-text" style="width:100%; height:${isMobile ? '100px' : '120px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical;" placeholder="(OOC: Your text here)"></textarea>
+            <textarea id="fawn-manual-text" style="width:100%; height:${isMobile ? '120px' : '120px'}; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:${isMobile ? '14px' : '12px'}; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:${isMobile ? '14px' : '13px'}; resize:vertical;" placeholder="(OOC: Your text here)"></textarea>
         </div>
-        <div style="display:flex; gap:8px; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
+        <div style="display:flex; gap:${isMobile ? '10px' : '8px'}; justify-content:center; ${isMobile ? 'flex-direction: column;' : ''}">
             <button id="fawn-manual-apply" class="menu_button" style="
                 background:var(--SmartThemeButtonColor); 
                 color:var(--SmartThemeButtonTextColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:none; 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%; margin-bottom: 8px;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-check"></i> Apply OOC
             </button>
             <button id="fawn-manual-close" class="menu_button" style="
                 background:transparent; 
                 color:var(--SmartThemeBodyColor); 
-                padding:8px 16px; 
-                border-radius:4px; 
+                padding:${isMobile ? '14px 20px' : '8px 16px'}; 
+                border-radius:${isMobile ? '8px' : '4px'}; 
                 border:1px solid var(--SmartThemeBorderColor); 
-                font-size:13px; 
+                font-size:${isMobile ? '15px' : '13px'}; 
                 cursor:pointer; 
                 display:flex; 
                 align-items:center; 
                 gap:6px; 
                 ${isMobile ? 'width: 100%;' : 'flex: 1;'}
                 justify-content:center; 
-                min-width: 120px;
+                min-width: ${isMobile ? 'auto' : '120px'};
             ">
                 <i class="fa-solid fa-xmark"></i> Close
             </button>
