@@ -94,38 +94,57 @@ function showSettingsPopup() {
         <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
         <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:20px; z-index:99999; width:500px; max-width:90%; max-height:80vh; overflow-y:auto;">
             <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-sliders"></i> Настройки Plot Driver
+                <i class="fa-solid fa-sliders"></i> Plot Driver Settings
             </div>
+            
             <div style="margin-bottom:16px;">
-                <label style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8;">Промпт для Time Skip:</label>
-                <textarea id="fawn-set-timeskip" style="width:100%; height:80px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:10px; color:var(--SmartThemeBodyColor); font-size:13px; resize:vertical; font-family:inherit;">${s.timeskipPrompt}</textarea>
+                <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-hourglass-half fa-xs"></i> Time Skip Prompt:
+                </div>
+                <textarea id="fawn-set-timeskip" style="width:100%; height:80px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:10px; color:var(--SmartThemeBodyColor); font-size:13px; resize:vertical; font-family:monospace;">${s.timeskipPrompt}</textarea>
             </div>
+            
             <div style="margin-bottom:16px;">
-                <label style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8;">Промпт для Plot Twist:</label>
-                <textarea id="fawn-set-twist" style="width:100%; height:80px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:10px; color:var(--SmartThemeBodyColor); font-size:13px; resize:vertical; font-family:inherit;">${s.twistPrompt}</textarea>
+                <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-bolt fa-xs"></i> Plot Twist Prompt:
+                </div>
+                <textarea id="fawn-set-twist" style="width:100%; height:80px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:10px; color:var(--SmartThemeBodyColor); font-size:13px; resize:vertical; font-family:monospace;">${s.twistPrompt}</textarea>
             </div>
+            
             <div style="margin-bottom:20px;">
-                <label style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:8px; opacity:0.8;">Сообщений для контекста: <span id="fawn-msg-count-label">${s.messageCount}</span></label>
-                <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="width:100%; height:4px; background:var(--SmartThemeBorderColor); border-radius:2px; outline:none;">
+                <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-message fa-xs"></i> Message Count:
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="number" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="width:80px; padding:8px 10px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; color:var(--SmartThemeBodyColor); font-size:13px; font-family:monospace;">
+                    <div style="color:var(--SmartThemeBodyColor); font-size:12px; opacity:0.6;">(5-50 messages)</div>
+                </div>
             </div>
+            
             <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-set-save" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer;">Сохранить</button>
-                <button id="fawn-set-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer;">Закрыть</button>
+                <button id="fawn-set-save" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-save"></i> Save
+                </button>
+                <button id="fawn-set-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
             </div>
         </div>
     `;
     document.body.appendChild(popup);
 
-    document.getElementById("fawn-set-msgcount").addEventListener("input", function(e) {
-        document.getElementById("fawn-msg-count-label").textContent = e.target.value;
-    });
-
     document.getElementById("fawn-set-save").addEventListener("click", function() {
+        const msgCount = parseInt(document.getElementById("fawn-set-msgcount").value);
+        if (msgCount < 5 || msgCount > 50) {
+            toastr.warning("Please enter a number between 5 and 50");
+            return;
+        }
+        
         extension_settings[extensionName].timeskipPrompt = document.getElementById("fawn-set-timeskip").value;
         extension_settings[extensionName].twistPrompt = document.getElementById("fawn-set-twist").value;
-        extension_settings[extensionName].messageCount = parseInt(document.getElementById("fawn-set-msgcount").value);
+        extension_settings[extensionName].messageCount = msgCount;
         saveSettings();
-        toastr.success("Настройки сохранены");
+        toastr.success("Settings saved");
         closePopup();
     });
 
@@ -149,17 +168,21 @@ function showOOCPreview(text, type) {
                 <i class="fa-solid ${icon}"></i> ${title}
             </div>
             <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:16px; opacity:0.7;">
-                Сгенерировано нейросетью. Отредактируйте при необходимости:
+                AI-generated OOC. Edit if needed:
             </div>
             <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; margin-bottom:16px; min-height:120px;">
-                <textarea id="fawn-ooc-text" style="width:100%; height:100px; background:transparent; border:none; color:var(--SmartThemeBodyColor); font-family:inherit; font-size:14px; resize:vertical; outline:none; line-height:1.4;">${text}</textarea>
+                <textarea id="fawn-ooc-text" style="width:100%; height:100px; background:transparent; border:none; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical; outline:none; line-height:1.4;">${text}</textarea>
             </div>
             <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-apply-ooc" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer;">Применить OOC</button>
-                <button id="fawn-regen-ooc" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                    <i class="fa-solid fa-rotate"></i> Заново
+                <button id="fawn-apply-ooc" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check"></i> Apply OOC
                 </button>
-                <button id="fawn-cancel" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer;">Отмена</button>
+                <button id="fawn-regen-ooc" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-rotate"></i> Regenerate
+                </button>
+                <button id="fawn-cancel" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
             </div>
         </div>
     `;
@@ -170,7 +193,7 @@ function showOOCPreview(text, type) {
         if (finalOOC) {
             addPlotPrompt(finalOOC);
             closePopup();
-            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} применен`);
+            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} applied`);
         }
     });
 
@@ -202,10 +225,14 @@ function showManualOOC(type) {
             <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid ${icon}"></i> ${title}
             </div>
-            <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:0 0 16px 0; padding:12px; border:1px solid var(--SmartThemeBorderColor); border-radius:6px; background:var(--SmartThemeInputColor); color:var(--SmartThemeBodyColor); font-family:inherit; font-size:14px; resize:vertical;">${defaultOOC}</textarea>
+            <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:0 0 16px 0; padding:12px; border:1px solid var(--SmartThemeBorderColor); border-radius:6px; background:var(--SmartThemeInputColor); color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical;">${defaultOOC}</textarea>
             <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer;">Применить OOC</button>
-                <button id="fawn-try-again" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer;">Заново</button>
+                <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check"></i> Apply OOC
+                </button>
+                <button id="fawn-try-again" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-rotate"></i> Retry
+                </button>
             </div>
         </div>
     `;
@@ -216,7 +243,7 @@ function showManualOOC(type) {
         if (oocText) {
             addPlotPrompt(oocText);
             closePopup();
-            toastr.success("OOC применен вручную");
+            toastr.success("OOC applied manually");
         }
     });
 
@@ -231,7 +258,7 @@ function showManualOOC(type) {
 // ========== ГЛАВНАЯ ФУНКЦИЯ ==========
 async function drivePlot(type) {
     if (isGenerating) {
-        toastr.info("Генерация уже выполняется");
+        toastr.info("Generation in progress");
         return;
     }
 
@@ -239,9 +266,9 @@ async function drivePlot(type) {
     isGenerating = true;
     lastType = type;
 
-    const icon = document.querySelector("#fawn-plot-btn i");
-    if (icon) {
-        icon.className = "fa-solid fa-spinner fa-spin";
+    const btn = document.getElementById("fawn-plot-btn");
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     }
 
     try {
@@ -249,7 +276,7 @@ async function drivePlot(type) {
         const msgCount = extension_settings[extensionName].messageCount || 15;
 
         if (!context?.chat?.length) {
-            toastr.warning("Начните чат сначала");
+            toastr.warning("Start a chat first");
             return;
         }
 
@@ -280,7 +307,7 @@ OOC:`;
         let oocText = extractOOC(response);
 
         if (!oocText || oocText.trim().length < 5) {
-            toastr.warning("Не удалось сгенерировать OOC. Попробуйте вручную.");
+            toastr.warning("Failed to generate OOC. Try manual input.");
             showManualOOC(type);
             return;
         }
@@ -293,19 +320,19 @@ OOC:`;
             lastGeneratedOOC = { text: oocText, type: type };
             showOOCPreview(oocText, type);
         } else {
-            toastr.warning("Не удалось сгенерировать OOC. Попробуйте вручную.");
+            toastr.warning("Failed to generate OOC. Try manual input.");
             showManualOOC(type);
         }
 
     } catch (error) {
         console.error('Fawn Plot Driver Error:', error);
-        toastr.error("Ошибка генерации OOC");
+        toastr.error("OOC generation error");
         showManualOOC(type);
     } finally {
         isGenerating = false;
-        const icon = document.querySelector("#fawn-plot-btn i");
-        if (icon) {
-            icon.className = "fa-solid fa-pen-nib";
+        const btn = document.getElementById("fawn-plot-btn");
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-pen-nib"></i>';
         }
         updateMenuState();
     }
@@ -316,7 +343,7 @@ function showLastOOC() {
     if (lastGeneratedOOC) {
         showOOCPreview(lastGeneratedOOC.text, lastGeneratedOOC.type);
     } else {
-        toastr.info("Нет сохраненного OOC");
+        toastr.info("No saved OOC found");
     }
 }
 
@@ -330,26 +357,39 @@ function showManualInputPopup() {
         <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
         <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:20px; z-index:99999; width:500px; max-width:90%;">
             <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-keyboard"></i> Ручной ввод OOC
+                <i class="fa-solid fa-keyboard"></i> Manual OOC Input
             </div>
             <div style="margin-bottom:16px;">
-                <label style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8;">Тип OOC:</label>
-                <select id="fawn-manual-type" style="width:100%; padding:10px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; color:var(--SmartThemeBodyColor); font-size:13px; font-family:inherit;">
-                    <option value="timeskip">Time Skip</option>
-                    <option value="twist">Plot Twist</option>
+                <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-tag fa-xs"></i> OOC Type:
+                </div>
+                <select id="fawn-manual-type" style="width:100%; padding:10px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; color:var(--SmartThemeBodyColor); font-size:13px; font-family:monospace;">
+                    <option value="timeskip"><i class="fa-solid fa-hourglass-half"></i> Time Skip</option>
+                    <option value="twist"><i class="fa-solid fa-bolt"></i> Plot Twist</option>
                 </select>
             </div>
             <div style="margin-bottom:20px;">
-                <label style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8;">OOC текст:</label>
-                <textarea id="fawn-manual-text" style="width:100%; height:120px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; color:var(--SmartThemeBodyColor); font-family:inherit; font-size:14px; resize:vertical;" placeholder="(OOC: Ваш текст здесь)"></textarea>
+                <div style="color:var(--SmartThemeBodyColor); font-size:13px; display:block; margin-bottom:6px; opacity:0.8; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-pen fa-xs"></i> OOC Text:
+                </div>
+                <textarea id="fawn-manual-text" style="width:100%; height:120px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical;" placeholder="(OOC: Your text here)"></textarea>
             </div>
             <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-manual-apply" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer;">Применить OOC</button>
-                <button id="fawn-manual-cancel" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer;">Отмена</button>
+                <button id="fawn-manual-apply" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-check"></i> Apply OOC
+                </button>
+                <button id="fawn-manual-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
             </div>
         </div>
     `;
     document.body.appendChild(popup);
+
+    // Add icons to select options
+    const select = document.getElementById("fawn-manual-type");
+    select.options[0].text = '⏳ Time Skip';
+    select.options[1].text = '⚡ Plot Twist';
 
     document.getElementById("fawn-manual-apply").addEventListener("click", function() {
         const oocText = document.getElementById("fawn-manual-text").value.trim();
@@ -359,12 +399,12 @@ function showManualInputPopup() {
             addPlotPrompt(oocText);
             lastGeneratedOOC = { text: oocText, type: oocType };
             closePopup();
-            toastr.success("OOC применен вручную");
+            toastr.success("OOC applied manually");
             updateMenuState();
         }
     });
 
-    document.getElementById("fawn-manual-cancel").addEventListener("click", closePopup);
+    document.getElementById("fawn-manual-close").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
@@ -423,21 +463,25 @@ function addFawnMenu() {
 
     // Находим другие кнопки для примера стилей
     const existingButtons = container.querySelectorAll("button, .menu_button, .fa-icon-button");
-    let buttonSize = "28px";
-    let buttonPadding = "8px";
-    let fontSize = "16px";
-
+    
+    // Определяем размеры на основе других кнопок в контейнере
+    let buttonSize = "32px";
+    let buttonPadding = "0";
+    let fontSize = "14px";
+    
     if (existingButtons.length > 0) {
-        const firstButton = existingButtons[0];
-        const computedStyle = window.getComputedStyle(firstButton);
-        if (firstButton.clientHeight > 0) {
-            buttonSize = firstButton.clientHeight + "px";
-        }
-        if (parseFloat(computedStyle.padding) > 0) {
-            buttonPadding = computedStyle.padding;
-        }
-        if (computedStyle.fontSize) {
-            fontSize = computedStyle.fontSize;
+        const referenceButton = existingButtons[0];
+        const rect = referenceButton.getBoundingClientRect();
+        
+        // Используем размеры первой найденной кнопки
+        buttonSize = Math.max(rect.width, rect.height) + "px";
+        buttonPadding = window.getComputedStyle(referenceButton).padding || "6px";
+        
+        // Ищем FontAwesome иконки для определения размера
+        const faIcons = container.querySelectorAll(".fa, .fas, .far, .fab");
+        if (faIcons.length > 0) {
+            const faStyle = window.getComputedStyle(faIcons[0]);
+            fontSize = faStyle.fontSize || "14px";
         }
     }
 
@@ -453,6 +497,8 @@ function addFawnMenu() {
         justify-content: center;
         width: ${buttonSize};
         height: ${buttonSize};
+        min-width: ${buttonSize};
+        min-height: ${buttonSize};
         padding: ${buttonPadding};
         color: var(--SmartThemeBodyColor);
         font-size: ${fontSize};
@@ -461,6 +507,7 @@ function addFawnMenu() {
         transition: all 0.2s;
         user-select: none;
         opacity: 0.8;
+        flex-shrink: 0;
     `;
 
     btn.addEventListener("mouseenter", function() {
@@ -487,7 +534,7 @@ function addFawnMenu() {
         border-radius: 6px;
         padding: 6px;
         z-index: 1001;
-        min-width: 160px;
+        min-width: 180px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         max-height: 300px;
         overflow-y: auto;
@@ -501,14 +548,14 @@ function addFawnMenu() {
             <i class="fa-solid fa-bolt" style="width:16px; opacity:0.7;"></i> Plot Twist
         </div>
         <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0; display:none; align-items:center; gap:8px; font-size:13px; font-weight:500;">
-            <i class="fa-solid fa-clock-rotate-left" style="width:16px;"></i> Последний OOC
+            <i class="fa-solid fa-clock-rotate-left" style="width:16px;"></i> Last OOC
         </div>
         <hr style="border:none; border-top:1px solid var(--SmartThemeBorderColor); margin:6px 0;">
         <div class="fawn-option" data-action="manual" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0; display:flex; align-items:center; gap:8px; font-size:13px; opacity:0.8;">
-            <i class="fa-solid fa-keyboard" style="width:16px;"></i> Ручной ввод
+            <i class="fa-solid fa-keyboard" style="width:16px;"></i> Manual Input
         </div>
         <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0; display:flex; align-items:center; gap:8px; font-size:13px; opacity:0.8;">
-            <i class="fa-solid fa-sliders" style="width:16px;"></i> Настройки
+            <i class="fa-solid fa-sliders" style="width:16px;"></i> Settings
         </div>
     `;
 
@@ -560,8 +607,7 @@ function addFawnMenu() {
         
         opt.addEventListener("mouseleave", function() {
             this.style.background = "";
-            this.style.color = this.dataset.action === "lastooc" ? 
-                "var(--SmartThemeBodyColor)" : "var(--SmartThemeBodyColor)";
+            this.style.color = "var(--SmartThemeBodyColor)";
         });
     });
 
