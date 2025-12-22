@@ -42,14 +42,15 @@ That’s it! You should now see a pen icon (`✒️`) in your chat interface.
 ## 📖 Usage
 
 ### Basic Usage
-1. Click the **pen icon** (`fa-pen-nib`) in the chat interface.
-2. Choose from:
-   - **⏳ Time Skip**: Generate OOC instructions for narrative time jumps.
-   - **⚡ Plot Twist**: Create unexpected plot developments.
-   - **⏰ Last OOC**: View and re-use your last generated OOC for this chat.
-   - **🧹 Clear OOC**: Remove the currently active OOC prompt.
-   - **✍️ Manual Input**: Write custom OOC instructions.
-   - **⚙️ Settings**: Customize prompts and settings.
+1. **Click the pen icon** (`fa-pen-nib`) in the chat interface.
+2. **Choose from the dropdown menu**:
+   - **⏳ Time Skip**: Generate OOC instructions for narrative time jumps *(e.g., "skip to the next morning", "fast-forward a week")*.
+   - **⚡ Plot Twist**: Create unexpected plot developments *(e.g., "a secret is revealed", "an unexpected event occurs")*.
+   - **⏰ Last OOC**: View and re-use the last generated OOC for this chat *(only appears if you closed the preview without applying)*.
+   - **🧹 Clear OOC**: Remove the currently active OOC prompt *(appears only when OOC is applied but not yet used in a message)*.
+   - **✍️ Manual Input**: Write your own custom OOC instructions from scratch.
+   - **⚙️ Settings**: Customize AI prompts, message count, and other options.
+3. **Follow the on-screen prompts** to add preferences, preview, edit, and apply your OOC instruction.
 
 ### Preferences System
 
