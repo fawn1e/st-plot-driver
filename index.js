@@ -21,18 +21,114 @@ let isGenerating = false;
 let lastGeneratedOOC = null;
 let currentPreferences = "";
 
+// ========== ПОЛУЧИТЬ ID ТЕКУЩЕГО ЧАТА ==========
+function getCurrentChatId() {
+    try {
+        const context = getContext();
+        if (context && context.chatId) {
+            return context.chatId.toString();
+        }
+        
+        // Альтернативный способ - через URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chat');
+        return chatId || 'global';
+    } catch (e) {
+        console.warn('Fawn: Could not get chat ID:', e);
+        return 'global';
+    }
+}
+
+// ========== СОХРАНИТЬ ПОСЛЕДНИЙ OOC ДЛЯ ЧАТА ==========
+function saveLastOOCForChat(oocData) {
+    try {
+        const chatId = getCurrentChatId();
+        const key = `fawn_last_ooc_${chatId}`;
+        localStorage.setItem(key, JSON.stringify(oocData));
+        console.log('Fawn: Saved OOC for chat', chatId, oocData);
+    } catch (e) {
+        console.warn('Fawn: Could not save OOC for chat:', e);
+    }
+}
+
+// ========== ЗАГРУЗИТЬ ПОСЛЕДНИЙ OOC ДЛЯ ЧАТА ==========
+function loadLastOOCForChat() {
+    try {
+        const chatId = getCurrentChatId();
+        const key = `fawn_last_ooc_${chatId}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            lastGeneratedOOC = JSON.parse(saved);
+            console.log('Fawn: Loaded OOC for chat', chatId, lastGeneratedOOC);
+            return lastGeneratedOOC;
+        }
+        return null;
+    } catch (e) {
+        console.warn('Fawn: Could not load OOC for chat:', e);
+        return null;
+    }
+}
+
+// ========== СОХРАНИТЬ АКТИВНЫЙ OOC ДЛЯ ЧАТА ==========
+function saveActiveOOCForChat(text) {
+    try {
+        const chatId = getCurrentChatId();
+        const key = `fawn_active_ooc_${chatId}`;
+        localStorage.setItem(key, text);
+        console.log('Fawn: Saved active OOC for chat', chatId);
+    } catch (e) {
+        console.warn('Fawn: Could not save active OOC for chat:', e);
+    }
+}
+
+// ========== ЗАГРУЗИТЬ АКТИВНЫЙ OOC ДЛЯ ЧАТА ==========
+function loadActiveOOCForChat() {
+    try {
+        const chatId = getCurrentChatId();
+        const key = `fawn_active_ooc_${chatId}`;
+        return localStorage.getItem(key) || '';
+    } catch (e) {
+        console.warn('Fawn: Could not load active OOC for chat:', e);
+        return '';
+    }
+}
+
+// ========== ОЧИСТИТЬ АКТИВНЫЙ OOC ДЛЯ ЧАТА ==========
+function clearActiveOOCForChat() {
+    try {
+        const chatId = getCurrentChatId();
+        const key = `fawn_active_ooc_${chatId}`;
+        localStorage.removeItem(key);
+        console.log('Fawn: Cleared active OOC for chat', chatId);
+    } catch (e) {
+        console.warn('Fawn: Could not clear active OOC for chat:', e);
+    }
+}
+
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
-    localStorage.setItem('fawn_settings', JSON.stringify(extension_settings[extensionName]));
+    const chatId = getCurrentChatId();
+    const key = `fawn_settings_${chatId}`;
+    localStorage.setItem(key, JSON.stringify(extension_settings[extensionName]));
 }
 
 function loadSettings() {
     try {
-        const saved = localStorage.getItem('fawn_settings');
+        const chatId = getCurrentChatId();
+        const key = `fawn_settings_${chatId}`;
+        const saved = localStorage.getItem(key);
         if (saved) {
             extension_settings[extensionName] = { ...defaultSettings, ...JSON.parse(saved) };
+        } else {
+            // Если нет настроек для этого чата, загружаем глобальные
+            const globalSettings = localStorage.getItem('fawn_settings_global');
+            if (globalSettings) {
+                extension_settings[extensionName] = { ...defaultSettings, ...JSON.parse(globalSettings) };
+            }
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn('Fawn: Could not load settings:', e);
+    }
 }
 
 // ========== ЗАКРЫТЬ POPUP ==========
@@ -68,17 +164,11 @@ ${text}
         extension_prompt_roles.SYSTEM
     );
 
-    // СОХРАНЯЕМ в localStorage
-    try {
-        localStorage.setItem('fawn_active_ooc', text);
-        console.log('Fawn: Saved active OOC to localStorage');
-    } catch (e) {
-        console.warn('Fawn: Could not save active OOC:', e);
-    }
+    // СОХРАНЯЕМ активный OOC для этого чата
+    saveActiveOOCForChat(text);
     
-    // Обновляем состояние меню
     lastGeneratedOOC = null;
-    setTimeout(updateMenuState, 100);
+    updateMenuState();
     toastr.success("OOC prompt added");
 }
 
@@ -95,13 +185,8 @@ function clearPlotPrompt() {
         extension_prompt_roles.SYSTEM
     );
     
-    // ОЧИЩАЕМ localStorage
-    try {
-        localStorage.removeItem('fawn_active_ooc');
-        console.log('Fawn: Cleared active OOC from localStorage');
-    } catch (e) {
-        console.warn('Fawn: Could not clear active OOC:', e);
-    }
+    // ОЧИЩАЕМ активный OOC для этого чата
+    clearActiveOOCForChat();
     
     // Обновляем состояние меню
     setTimeout(updateMenuState, 100);
@@ -112,8 +197,8 @@ function updateMenuState() {
     const lastOocOption = document.getElementById("fawn-last-ooc-option");
     const clearOocOption = document.getElementById("fawn-clear-ooc-option");
     
-    // Для отладки
-    console.log('Fawn: updateMenuState called');
+    const chatId = getCurrentChatId();
+    console.log('Fawn: updateMenuState for chat', chatId);
     console.log('Fawn: lastGeneratedOOC =', lastGeneratedOOC);
     console.log('Fawn: hasActiveOOC =', checkActiveOOCPrompt());
     
@@ -122,29 +207,21 @@ function updateMenuState() {
                           lastGeneratedOOC.text && 
                           lastGeneratedOOC.text.trim().length > 0;
         lastOocOption.style.display = hasLastOOC ? "flex" : "none";
-        
-        console.log('Fawn: Last OOC option:', hasLastOOC ? 'visible' : 'hidden');
     }
     
     if (clearOocOption) {
         const hasActiveOOC = checkActiveOOCPrompt();
         clearOocOption.style.display = hasActiveOOC ? "flex" : "none";
-        
-        console.log('Fawn: Clear OOC option:', hasActiveOOC ? 'visible' : 'hidden');
     }
 }
 
 // ========== ПРОВЕРИТЬ АКТИВНЫЙ OOC ПРОМПТ ==========
 function checkActiveOOCPrompt() {
     try {
-        // Сначала проверяем localStorage
-        try {
-            const savedPrompt = localStorage.getItem('fawn_active_ooc');
-            if (savedPrompt && savedPrompt.trim().length > 0) {
-                return true;
-            }
-        } catch (e) {
-            // Игнорируем ошибки localStorage
+        // Сначала проверяем localStorage для этого чата
+        const savedPrompt = loadActiveOOCForChat();
+        if (savedPrompt && savedPrompt.trim().length > 0) {
+            return true;
         }
         
         // Затем проверяем контекст
@@ -154,25 +231,13 @@ function checkActiveOOCPrompt() {
             return false;
         }
         
-        console.log('Fawn: Checking context for active prompts:', context);
-        
         if (context.extensionPrompts?.length > 0) {
             const hasPrompt = context.extensionPrompts.some(prompt => 
                 prompt.name === 'fawn-plot-driver' && 
                 prompt.value && 
                 prompt.value.trim().length > 0
             );
-            console.log('Fawn: Found prompt in extensionPrompts:', hasPrompt);
             return hasPrompt;
-        }
-        
-        // Проверяем другие возможные места
-        if (context.chat && context.chat.length > 0) {
-            const lastMessage = context.chat[context.chat.length - 1];
-            if (lastMessage && lastMessage.mes && lastMessage.mes.includes('[OOC INSTRUCTION FROM PLOT DRIVER]')) {
-                console.log('Fawn: Found OOC in last message');
-                return true;
-            }
         }
         
         return false;
@@ -713,20 +778,15 @@ function showOOCPreview(text, type) {
     
     const popup = createPopup(content, "500px");
 
-    // ФИКС: Сохраняем OOC как lastGeneratedOOC
+    // СОХРАНЯЕМ OOC как lastGeneratedOOC ДЛЯ ТЕКУЩЕГО ЧАТА
     lastGeneratedOOC = { 
         text: text, 
         type: type, 
         preferences: currentPreferences || "" 
     };
     
-    // Сохраняем в localStorage
-    try {
-        localStorage.setItem('fawn_last_ooc', JSON.stringify(lastGeneratedOOC));
-        console.log('Fawn: Saved OOC to localStorage:', { type, text: text.substring(0, 50) + '...' });
-    } catch (e) {
-        console.warn('Fawn: Could not save OOC to localStorage:', e);
-    }
+    // ФИКС: Сохраняем для текущего чата, а не глобально
+    saveLastOOCForChat(lastGeneratedOOC);
     
     // Обновляем состояние меню
     updateMenuState();
@@ -734,13 +794,12 @@ function showOOCPreview(text, type) {
     document.getElementById("fawn-apply-ooc").addEventListener("click", function() {
         const finalOOC = document.getElementById("fawn-ooc-text").value.trim();
         if (finalOOC) {
+            // Обновляем lastGeneratedOOC
             lastGeneratedOOC.text = finalOOC;
             
-            try {
-                localStorage.setItem('fawn_last_ooc', JSON.stringify(lastGeneratedOOC));
-            } catch (e) {
-                console.warn('Fawn: Could not save updated OOC:', e);
-            }
+            // ФИКС: Сохраняем для текущего чата
+            saveLastOOCForChat(lastGeneratedOOC);
+            saveActiveOOCForChat(finalOOC);
             
             addPlotPrompt(finalOOC);
             closePopup();
@@ -1175,23 +1234,29 @@ eventSource.on(event_types.MESSAGE_SWIPED, function() {
 
 // ========== ЗАПУСК ==========
 jQuery(() => {
-    // Загружаем настройки
+    // Загружаем настройки ДЛЯ ТЕКУЩЕГО ЧАТА
     loadSettings();
     
-    // ЗАГРУЗКА lastGeneratedOOC из localStorage
-    try {
-        const savedLastOOC = localStorage.getItem('fawn_last_ooc');
-        if (savedLastOOC) {
-            lastGeneratedOOC = JSON.parse(savedLastOOC);
-            console.log('Fawn: Loaded last OOC from storage:', lastGeneratedOOC);
-        }
-    } catch (e) {
-        console.warn('Fawn: Could not load last OOC:', e);
+    // ЗАГРУЗКА lastGeneratedOOC ДЛЯ ТЕКУЩЕГО ЧАТА
+    const loadedOOC = loadLastOOCForChat();
+    if (loadedOOC) {
+        lastGeneratedOOC = loadedOOC;
+        console.log('Fawn: Loaded last OOC for current chat:', lastGeneratedOOC);
+    } else {
         lastGeneratedOOC = null;
     }
     
     // Инициализируем переменные
     currentPreferences = "";
+    
+    // Проверяем и применяем активный OOC при загрузке
+    setTimeout(() => {
+        const activeOOC = loadActiveOOCForChat();
+        if (activeOOC && activeOOC.trim().length > 0) {
+            console.log('Fawn: Found active OOC for chat');
+            // Активный OOC уже загружен, меню само обновится через updateMenuState
+        }
+    }, 1000);
     
     // Создаем кнопку с небольшой задержкой
     setTimeout(() => {
@@ -1221,6 +1286,7 @@ jQuery(() => {
         // Проверяем состояние для отладки
         console.log('Fawn: Final check - lastGeneratedOOC:', lastGeneratedOOC);
         console.log('Fawn: Final check - has active OOC:', checkActiveOOCPrompt());
+        console.log('Fawn: Current chat ID:', getCurrentChatId());
         
     }, 2500);
     
@@ -1229,5 +1295,34 @@ jQuery(() => {
         setTimeout(updateMenuState, 100);
     });
     
-    console.log('Fawn Plot Driver: Initialized');
+    // ОБНОВЛЯЕМ ПРИ СМЕНЕ ЧАТА
+    eventSource.on(event_types.CHAT_CHANGED, function() {
+        console.log('Fawn: Chat changed, reloading settings and OOC...');
+        
+        // Перезагружаем настройки для нового чата
+        loadSettings();
+        
+        // Перезагружаем OOC для нового чата
+        const loadedOOC = loadLastOOCForChat();
+        lastGeneratedOOC = loadedOOC || null;
+        
+        // Обновляем состояние меню
+        setTimeout(() => {
+            updateMenuState();
+            console.log('Fawn: Updated menu for new chat:', getCurrentChatId());
+        }, 300);
+    });
+    
+    // Также обновляем при загрузке нового чата
+    eventSource.on(event_types.CHAT_LOADED, function() {
+        setTimeout(() => {
+            loadSettings();
+            const loadedOOC = loadLastOOCForChat();
+            lastGeneratedOOC = loadedOOC || null;
+            updateMenuState();
+            console.log('Fawn: Chat loaded, updated for chat:', getCurrentChatId());
+        }, 500);
+    });
+    
+    console.log('Fawn Plot Driver: Initialized for chat', getCurrentChatId());
 });
