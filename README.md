@@ -48,6 +48,7 @@ That’s it! You should now see a pen icon (`✒️`) in your chat interface.
    - **⏳ Time Skip**: Generate OOC instructions for narrative time jumps *(e.g., "skip to the next morning", "fast-forward a week")*.
    - **⚡ Plot Twist**: Create unexpected plot developments *(e.g., "a secret is revealed", "an unexpected event occurs")*.
    - **⏰ Last OOC**: View and re-use the last generated OOC for this chat *(only appears if you closed the preview without applying)*.
+
 ![lastooc](lastooc.png)
 
    - **🧹 Clear OOC**: Remove the currently active OOC prompt *(appears only when OOC is applied but not yet used in a message)*.
