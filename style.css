@@ -1,35 +1,28 @@
-/* ========== ГЛАВНАЯ КНОПКА ========== */
+/* ========== ГЛАВНАЯ КНОПКА (УМЕНЬШЕННАЯ) ========== */
 #fawn-plot-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 35px;
-    height: 35px;
+    width: 28px; /* Уменьшено для лучшего баланса в строке ввода */
+    height: 28px;
     cursor: pointer;
-    border-radius: 10px;
-    margin-right: 5px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    margin: 0 4px;
+    transition: all 0.2s ease-in-out;
     color: var(--SmartThemeQuoteColor);
     background: transparent;
-    border: 1px solid transparent;
+    opacity: 0.8;
+}
+
+#fawn-plot-btn i {
+    font-size: 14px; /* Уменьшенный размер самой иконки */
 }
 
 #fawn-plot-btn:hover {
+    opacity: 1;
     background: var(--SmartThemeBlurTintColor);
-    border-color: var(--SmartThemeQuoteColor);
-    box-shadow: 0 0 15px var(--SmartThemeQuoteColor);
-    transform: translateY(-2px);
-}
-
-/* Анимация вращения при генерации */
-.fa-spin {
-    animation: fawn-spin 1.2s infinite linear;
-    color: var(--SmartThemeQuoteColor);
-}
-
-@keyframes fawn-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    box-shadow: 0 0 10px var(--SmartThemeQuoteColor);
+    transform: translateY(-1px);
 }
 
 /* ========== ВЫПАДАЮЩЕЕ МЕНЮ ========== */
@@ -38,152 +31,81 @@
     position: fixed;
     z-index: 10000;
     background: var(--SmartThemeBlurTintColor);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border: 1px solid var(--SmartThemeBorderColor);
-    border-radius: 12px;
-    padding: 8px;
-    min-width: 180px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    animation: fawn-pop-in 0.2s ease-out;
-}
-
-@keyframes fawn-pop-in {
-    from { opacity: 0; transform: translateY(10px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    border-radius: 10px;
+    padding: 6px;
+    min-width: 190px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    animation: fawn-pop-in 0.15s ease-out;
 }
 
 .fawn-option {
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--SmartThemeBodyColor);
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px; /* Отступ для иконок Font Awesome */
+    transition: 0.2s;
+}
+
+.fawn-option i {
+    width: 16px;
+    text-align: center;
+    opacity: 0.7;
 }
 
 .fawn-option:hover {
     background: var(--SmartThemeQuoteColor) !important;
     color: white !important;
-    padding-left: 18px;
 }
 
-#fawn-last-ooc-option {
-    color: var(--SmartThemeQuoteColor);
-    font-weight: bold;
-    border: 1px dashed var(--SmartThemeQuoteColor);
-    margin-top: 4px;
+.fawn-option:hover i {
+    opacity: 1;
 }
 
-/* ========== ПОП-АПЫ (НАСТРОЙКИ И ПРЕВЬЮ) ========== */
-#fawn-popup-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    z-index: 99998;
-}
-
+/* ========== ПОП-АПЫ ========== */
 .fawn-popup-content {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--SmartThemeBlurTintColor);
-    backdrop-filter: blur(20px);
-    border: 2px solid var(--SmartThemeQuoteColor);
-    border-radius: 20px;
-    padding: 25px;
+    backdrop-filter: blur(25px);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-top: 3px solid var(--SmartThemeQuoteColor); /* Акцентная полоса сверху */
+    border-radius: 12px;
+    padding: 20px;
     z-index: 99999;
-    width: 500px;
-    max-width: 90vw;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(var(--SmartThemeQuoteColorRgb), 0.2);
-    animation: fawn-slide-up 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-
-@keyframes fawn-slide-up {
-    from { opacity: 0; transform: translate(-50%, -40%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
+    width: 480px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 .fawn-popup-title {
-    font-size: 22px;
-    font-weight: bold;
-    color: var(--SmartThemeQuoteColor);
-    text-align: center;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(var(--SmartThemeQuoteColorRgb), 0.5);
-}
-
-.fawn-popup-label {
-    display: block;
-    margin-bottom: 8px;
+    font-size: 18px;
     font-weight: 600;
-    color: var(--SmartThemeBodyColor);
-    opacity: 0.9;
-}
-
-/* Поля ввода и текстовые области */
-.fawn-popup-textarea, 
-#fawn-manual-text, 
-#fawn-ooc-text {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.2) !important;
-    border: 1px solid var(--SmartThemeBorderColor) !important;
-    border-radius: 12px !important;
-    color: var(--SmartThemeBodyColor) !important;
-    padding: 12px !important;
-    font-family: 'Consolas', monospace;
-    font-size: 14px;
-    transition: border-color 0.3s ease;
-}
-
-.fawn-popup-textarea:focus, 
-#fawn-ooc-text:focus {
-    border-color: var(--SmartThemeQuoteColor) !important;
-    outline: none;
-    box-shadow: 0 0 8px rgba(var(--SmartThemeQuoteColorRgb), 0.3);
-}
-
-/* Кнопки в поп-апе */
-.fawn-popup-buttons {
+    color: var(--SmartThemeQuoteColor);
+    margin-bottom: 15px;
     display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 20px;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
 }
 
-.menu_button.fawn-primary {
-    background: var(--SmartThemeQuoteColor) !important;
-    color: white !important;
-    border: none !important;
-    padding: 10px 20px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+/* Анимация вращения пера */
+.fa-spin {
+    animation: fawn-spin 1s infinite cubic-bezier(0.5, 0.1, 0.5, 0.9);
 }
 
-.menu_button.fawn-primary:hover {
-    filter: brightness(1.2);
-    transform: scale(1.05);
+@keyframes fawn-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* Слайдер */
-input[type=range] {
-    cursor: pointer;
-}
-
-input[type=range]::-webkit-slider-runnable-track {
-    background: var(--SmartThemeBorderColor);
-    height: 6px;
-    border-radius: 3px;
-}
-
-input[type=range]::-webkit-slider-thumb {
-    margin-top: -5px;
+@keyframes fawn-pop-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
