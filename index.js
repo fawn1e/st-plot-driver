@@ -121,7 +121,7 @@ function showSettingsPopup() {
                 </div>
             </div>
             
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <div style="display:flex; gap:8px; justify-content:center;">
                 <button id="fawn-set-save" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-save"></i> Save
                 </button>
@@ -173,14 +173,14 @@ function showOOCPreview(text, type) {
             <div style="background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; margin-bottom:16px; min-height:120px;">
                 <textarea id="fawn-ooc-text" style="width:100%; height:100px; background:transparent; border:none; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical; outline:none; line-height:1.4;">${text}</textarea>
             </div>
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-apply-ooc" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; gap:8px; justify-content:center; width:100%;">
+                <button id="fawn-apply-ooc" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-check"></i> Apply OOC
                 </button>
-                <button id="fawn-regen-ooc" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <button id="fawn-regen-ooc" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-rotate"></i> Regenerate
                 </button>
-                <button id="fawn-cancel" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <button id="fawn-cancel" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-xmark"></i> Cancel
                 </button>
             </div>
@@ -225,13 +225,19 @@ function showManualOOC(type) {
             <div style="color:var(--SmartThemeBodyColor); font-size:16px; font-weight:500; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid ${icon}"></i> ${title}
             </div>
+            <div style="color:var(--SmartThemeBodyColor); font-size:13px; margin-bottom:12px; opacity:0.7;">
+                Generation failed. Enter OOC manually:
+            </div>
             <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:0 0 16px 0; padding:12px; border:1px solid var(--SmartThemeBorderColor); border-radius:6px; background:var(--SmartThemeInputColor); color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical;">${defaultOOC}</textarea>
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; gap:8px; justify-content:center; width:100%;">
+                <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-check"></i> Apply OOC
                 </button>
-                <button id="fawn-try-again" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <button id="fawn-try-again" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-rotate"></i> Retry
+                </button>
+                <button id="fawn-manual-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
+                    <i class="fa-solid fa-xmark"></i> Close
                 </button>
             </div>
         </div>
@@ -252,6 +258,7 @@ function showManualOOC(type) {
         setTimeout(() => drivePlot(type), 100);
     });
 
+    document.getElementById("fawn-manual-close").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
@@ -307,7 +314,7 @@ OOC:`;
         let oocText = extractOOC(response);
 
         if (!oocText || oocText.trim().length < 5) {
-            toastr.warning("Failed to generate OOC. Try manual input.");
+            toastr.warning("Failed to generate OOC");
             showManualOOC(type);
             return;
         }
@@ -320,7 +327,7 @@ OOC:`;
             lastGeneratedOOC = { text: oocText, type: type };
             showOOCPreview(oocText, type);
         } else {
-            toastr.warning("Failed to generate OOC. Try manual input.");
+            toastr.warning("Failed to generate OOC");
             showManualOOC(type);
         }
 
@@ -364,8 +371,8 @@ function showManualInputPopup() {
                     <i class="fa-solid fa-tag fa-xs"></i> OOC Type:
                 </div>
                 <select id="fawn-manual-type" style="width:100%; padding:10px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; color:var(--SmartThemeBodyColor); font-size:13px; font-family:monospace;">
-                    <option value="timeskip"><i class="fa-solid fa-hourglass-half"></i> Time Skip</option>
-                    <option value="twist"><i class="fa-solid fa-bolt"></i> Plot Twist</option>
+                    <option value="timeskip">⏳ Time Skip</option>
+                    <option value="twist">⚡ Plot Twist</option>
                 </select>
             </div>
             <div style="margin-bottom:20px;">
@@ -374,22 +381,17 @@ function showManualInputPopup() {
                 </div>
                 <textarea id="fawn-manual-text" style="width:100%; height:120px; background:var(--SmartThemeInputColor); border:1px solid var(--SmartThemeBorderColor); border-radius:6px; padding:12px; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical;" placeholder="(OOC: Your text here)"></textarea>
             </div>
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button id="fawn-manual-apply" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; gap:8px; justify-content:center; width:100%;">
+                <button id="fawn-manual-apply" class="menu_button" style="background:var(--SmartThemeButtonColor); color:var(--SmartThemeButtonTextColor); padding:8px 16px; border-radius:4px; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-check"></i> Apply OOC
                 </button>
-                <button id="fawn-manual-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <button id="fawn-manual-close" class="menu_button" style="background:transparent; color:var(--SmartThemeBodyColor); padding:8px 16px; border-radius:4px; border:1px solid var(--SmartThemeBorderColor); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; flex:1; justify-content:center; min-width:120px;">
                     <i class="fa-solid fa-xmark"></i> Close
                 </button>
             </div>
         </div>
     `;
     document.body.appendChild(popup);
-
-    // Add icons to select options
-    const select = document.getElementById("fawn-manual-type");
-    select.options[0].text = '⏳ Time Skip';
-    select.options[1].text = '⚡ Plot Twist';
 
     document.getElementById("fawn-manual-apply").addEventListener("click", function() {
         const oocText = document.getElementById("fawn-manual-text").value.trim();
