@@ -17,6 +17,7 @@ if (!extension_settings[extensionName]) {
 }
 
 let lastType = null;
+let isGenerating = false;
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
@@ -134,7 +135,7 @@ function showOOCPreview(text, type) {
     closePopup();
 
     const title = type === 'timeskip' ? '🩰 Time Skip OOC' : '🥀 Plot Twist OOC';
-    
+
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
@@ -181,12 +182,12 @@ function showOOCPreview(text, type) {
 
 // ========== РУЧНОЙ OOC ==========
 function showManualOOC(type) {
-    const defaultOOC = type === 'timeskip' 
+    const defaultOOC = type === 'timeskip'
         ? '(OOC: Time passes naturally. Describe what happens next.)'
         : '(OOC: Introduce an unexpected plot twist. Make it logical.)';
 
     closePopup();
-    
+
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
@@ -221,8 +222,13 @@ function showManualOOC(type) {
 
 // ========== ГЛАВНАЯ ФУНКЦИЯ ==========
 async function drivePlot(type) {
-    console.log('Fawn Plot Driver: Generating OOC...');
+    if (isGenerating) {
+        toastr.info("Подожди, генерируется! 💕");
+        return;
+    }
 
+    console.log('Fawn Plot Driver: Generating OOC...');
+    isGenerating = true;
     lastType = type;
 
     const button = document.getElementById("fawn-plot-btn");
@@ -245,8 +251,8 @@ async function drivePlot(type) {
             return `${name}: ${cleanMes}`;
         }).join('\n');
 
-        const instruction = type === 'timeskip' 
-            ? extension_settings[extensionName].timeskipPrompt 
+        const instruction = type === 'timeskip'
+            ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
         const oocPrompt = `TASK: ${instruction}
@@ -281,6 +287,7 @@ OOC:`;
         toastr.error("Ошибка генерации OOC");
         showManualOOC(type);
     } finally {
+        isGenerating = false;
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
@@ -303,20 +310,36 @@ function extractOOC(response) {
         text = response.text;
     }
 
-    return text
+    text = text
         ?.replace(/<think>[\s\S]*?<\/think>/gi, '')
         .replace(/<\/?think[^>]*>/gi, '')
         .replace(/^\s*\n/gm, '')
-        .trim()
-        .substring(0, 300);
+        .trim();
+
+    // 🥀 УМНАЯ ОБРЕЗКА: если текст слишком длинный, обрезаем по последней точке/скобке
+    if (text && text.length > 500) {
+        const cut = text.substring(0, 500);
+        const lastEnd = Math.max(
+            cut.lastIndexOf(')'),
+            cut.lastIndexOf('.'),
+            cut.lastIndexOf('!')
+        );
+        if (lastEnd > 100) {
+            text = cut.substring(0, lastEnd + 1);
+        } else {
+            text = cut;
+        }
+    }
+
+    return text;
 }
 
 // ========== ИСПРАВЛЕННАЯ КНОПКА ==========
 function addFawnMenu() {
     if (document.getElementById("fawn-plot-btn")) return true;
 
-    const container = document.getElementById("leftSendForm") || 
-                     document.getElementById("form_sheld") || 
+    const container = document.getElementById("leftSendForm") ||
+                     document.getElementById("form_sheld") ||
                      document.querySelector("#send_form");
 
     if (!container) return false;
@@ -359,7 +382,7 @@ function addFawnMenu() {
                 drivePlot(action);
             }
         });
-        
+
         opt.addEventListener("mouseenter", function() {
             this.style.background = "var(--SmartThemeQuoteColor)";
             this.style.color = "white";
@@ -375,7 +398,7 @@ function addFawnMenu() {
             menu.style.display = "none";
         }
     };
-    
+
     document.removeEventListener("click", globalClickHandler);
     setTimeout(() => {
         document.addEventListener("click", globalClickHandler);
@@ -393,7 +416,7 @@ setInterval(() => {
     if (!document.getElementById('fawn-plot-btn')) {
         addFawnMenu();
     }
-}, 10);
+}, 2000);
 
 // ========== ЗАПУСК ==========
 jQuery(() => {
