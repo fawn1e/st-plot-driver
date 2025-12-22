@@ -79,7 +79,7 @@ function clearPlotPrompt() {
 function updateMenuState() {
     const lastOocOption = document.getElementById("fawn-last-ooc-option");
     if (lastOocOption) {
-        lastOocOption.style.display = lastGeneratedOOC ? "flex" : "none";
+        lastOocOption.style.display = lastGeneratedOOC ? "block" : "none";
     }
 }
 
@@ -91,257 +91,29 @@ function showSettingsPopup() {
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div id="fawn-popup-bg" class="fawn-overlay"></div>
-        <div class="fawn-panel fawn-settings-panel">
-            <div class="fawn-header">
-                <div class="fawn-title">⚙️ Настройки Fawn's Plot Driver</div>
-                <button class="fawn-close-btn" title="Закрыть">×</button>
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeBorderColor); border-radius:15px; padding:25px; z-index:99999; width:500px; max-width:90%; max-height:80vh; overflow-y:auto;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:20px; text-align:center; margin-bottom:20px;">
+                ⚙️ Настройки Fawn's Plot Driver
             </div>
-            
-            <div class="fawn-section">
-                <label class="fawn-label">🩰 Промпт для Time Skip:</label>
-                <textarea id="fawn-set-timeskip" class="fawn-textarea">${s.timeskipPrompt}</textarea>
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">🩰 Промпт для Time Skip:</label>
+                <textarea id="fawn-set-timeskip" style="width:100%; height:80px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical;">${s.timeskipPrompt}</textarea>
             </div>
-            
-            <div class="fawn-section">
-                <label class="fawn-label">🥀 Промпт для Plot Twist:</label>
-                <textarea id="fawn-set-twist" class="fawn-textarea">${s.twistPrompt}</textarea>
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">🥀 Промпт для Plot Twist:</label>
+                <textarea id="fawn-set-twist" style="width:100%; height:80px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical;">${s.twistPrompt}</textarea>
             </div>
-            
-            <div class="fawn-section">
-                <label class="fawn-label">
-                    📜 Сколько сообщений: 
-                    <span id="fawn-msg-count-label" class="fawn-slider-value">${s.messageCount}</span>
-                </label>
-                <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" class="fawn-slider">
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">📜 Сколько сообщений: <span id="fawn-msg-count-label">${s.messageCount}</span></label>
+                <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="width:100%; accent-color:var(--SmartThemeQuoteColor);">
             </div>
-            
-            <div class="fawn-buttons">
-                <button id="fawn-set-save" class="fawn-btn fawn-btn-primary">💾 Сохранить</button>
-                <button id="fawn-set-reset" class="fawn-btn fawn-btn-secondary">🔄 Сбросить</button>
-                <button id="fawn-set-close" class="fawn-btn fawn-btn-secondary">✖ Закрыть</button>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <button id="fawn-set-save" class="menu_button">💾 Сохранить</button>
+                <button id="fawn-set-reset" class="menu_button">🔄 Сбросить</button>
+                <button id="fawn-set-close" class="menu_button">✖ Закрыть</button>
             </div>
         </div>
-
-        <style>
-        .fawn-overlay {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0,0,0,0.75) !important;
-            z-index: 99998 !important;
-            backdrop-filter: blur(4px);
-            animation: fawn-fade-in 0.2s ease-out;
-        }
-        
-        .fawn-panel {
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            width: 540px !important;
-            max-width: 92vw !important;
-            max-height: 85vh !important;
-            background: var(--SmartThemeBlurTintColor) !important;
-            backdrop-filter: blur(20px) !important;
-            border: 2px solid var(--SmartThemeBorderColor) !important;
-            border-radius: 20px !important;
-            padding: 28px !important;
-            z-index: 99999 !important;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5) !important;
-            animation: fawn-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow-y: auto;
-        }
-        
-        .fawn-settings-panel { min-height: 520px; }
-        
-        .fawn-header {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-bottom: 28px !important;
-            padding-bottom: 16px !important;
-            border-bottom: 1px solid rgba(var(--SmartThemeBorderColor-rgb), 0.3);
-        }
-        
-        .fawn-title {
-            font-size: 22px !important;
-            font-weight: 700 !important;
-            background: linear-gradient(135deg, var(--SmartThemeQuoteColor), var(--SmartThemeAccentColor));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-align: center;
-            flex: 1;
-        }
-        
-        .fawn-close-btn {
-            width: 36px !important;
-            height: 36px !important;
-            border-radius: 10px !important;
-            background: rgba(var(--SmartThemeBorderColor-rgb), 0.2) !important;
-            border: 1px solid rgba(var(--SmartThemeBorderColor-rgb), 0.3) !important;
-            color: var(--SmartThemeBodyColor) !important;
-            font-size: 20px !important;
-            font-weight: 700 !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        
-        .fawn-close-btn:hover {
-            background: var(--SmartThemeQuoteColor) !important;
-            color: white !important;
-            transform: scale(1.05);
-        }
-        
-        .fawn-section {
-            margin-bottom: 24px !important;
-        }
-        
-        .fawn-section:last-child { margin-bottom: 0; }
-        
-        .fawn-label {
-            display: block !important;
-            margin-bottom: 10px !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            color: var(--SmartThemeQuoteColor) !important;
-        }
-        
-        .fawn-textarea {
-            width: 100% !important;
-            height: 90px !important;
-            background: rgba(var(--SmartThemeBlurTintColor-rgb), 0.7) !important;
-            backdrop-filter: blur(10px) !important;
-            border: 2px solid rgba(var(--SmartThemeBorderColor-rgb), 0.4) !important;
-            border-radius: 14px !important;
-            padding: 16px !important;
-            color: var(--SmartThemeBodyColor) !important;
-            font-size: 14px !important;
-            font-family: inherit !important;
-            resize: vertical !important;
-            transition: all 0.2s ease !important;
-            line-height: 1.5 !important;
-        }
-        
-        .fawn-textarea:focus {
-            outline: none !important;
-            border-color: var(--SmartThemeQuoteColor) !important;
-            box-shadow: 0 0 0 3px rgba(var(--SmartThemeQuoteColor-rgb), 0.1) !important;
-            transform: translateY(-1px);
-        }
-        
-        .fawn-slider {
-            width: 100% !important;
-            height: 6px !important;
-            background: rgba(var(--SmartThemeBorderColor-rgb), 0.3) !important;
-            border-radius: 3px !important;
-            outline: none !important;
-            -webkit-appearance: none !important;
-            accent-color: var(--SmartThemeQuoteColor) !important;
-        }
-        
-        .fawn-slider::-webkit-slider-thumb {
-            -webkit-appearance: none !important;
-            width: 24px !important;
-            height: 24px !important;
-            background: var(--SmartThemeQuoteColor) !important;
-            border-radius: 50% !important;
-            cursor: pointer !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
-        }
-        
-        .fawn-slider-value {
-            background: var(--SmartThemeQuoteColor) !important;
-            color: white !important;
-            padding: 4px 10px !important;
-            border-radius: 12px !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            display: inline-block !important;
-            min-width: 32px !important;
-            text-align: center !important;
-        }
-        
-        .fawn-buttons {
-            display: flex !important;
-            gap: 12px !important;
-            justify-content: center !important;
-            flex-wrap: wrap !important;
-            margin-top: 20px !important;
-        }
-        
-        .fawn-btn {
-            padding: 14px 24px !important;
-            border: none !important;
-            border-radius: 12px !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            backdrop-filter: blur(10px) !important;
-            position: relative !important;
-            overflow: hidden !important;
-        }
-        
-        .fawn-btn::before {
-            content: '' !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: -100% !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent) !important;
-            transition: left 0.5s !important;
-        }
-        
-        .fawn-btn:hover::before { left: 100%; }
-        
-        .fawn-btn-primary {
-            background: linear-gradient(135deg, var(--SmartThemeQuoteColor), var(--SmartThemeAccentColor)) !important;
-            color: white !important;
-            box-shadow: 0 8px 25px rgba(var(--SmartThemeQuoteColor-rgb), 0.3) !important;
-        }
-        
-        .fawn-btn-primary:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 12px 35px rgba(var(--SmartThemeQuoteColor-rgb), 0.4) !important;
-        }
-        
-        .fawn-btn-secondary {
-            background: rgba(var(--SmartThemeBorderColor-rgb), 0.2) !important;
-            color: var(--SmartThemeBodyColor) !important;
-            border: 2px solid rgba(var(--SmartThemeBorderColor-rgb), 0.4) !important;
-        }
-        
-        .fawn-btn-secondary:hover {
-            background: var(--SmartThemeQuoteColor) !important;
-            color: white !important;
-            border-color: var(--SmartThemeQuoteColor) !important;
-            transform: translateY(-1px) !important;
-        }
-        
-        @keyframes fawn-fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes fawn-slide-in {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -60%) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-        </style>
     `;
     document.body.appendChild(popup);
 
@@ -367,7 +139,6 @@ function showSettingsPopup() {
     });
 
     document.getElementById("fawn-set-close").addEventListener("click", closePopup);
-    document.querySelector(".fawn-close-btn").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
@@ -380,64 +151,26 @@ function showOOCPreview(text, type) {
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div id="fawn-popup-bg" class="fawn-overlay"></div>
-        <div class="fawn-panel fawn-preview-panel">
-            <div class="fawn-header">
-                <div class="fawn-title">${title}</div>
-                <button class="fawn-close-btn" title="Закрыть">×</button>
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeQuoteColor); border-radius:15px; padding:20px; z-index:99999; width:520px; max-width:90%;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:20px; text-align:center; margin-bottom:12px; font-weight:bold;">
+                ${title}
             </div>
-            <div class="fawn-subtitle">Сгенерировано нейронкой. Отредактируй если нужно:</div>
-            <div class="fawn-ooc-container">
-                <textarea id="fawn-ooc-text" class="fawn-ooc-textarea">${text}</textarea>
+            <div style="color:var(--SmartThemeBodyColor); text-align:center; margin-bottom:18px; opacity:0.9; font-size:14px;">
+                Сгенерировано нейронкой. Отредактируй если нужно:
             </div>
-            <div class="fawn-buttons">
-                <button id="fawn-apply-ooc" class="fawn-btn fawn-btn-primary fawn-btn-large">✅ ПРИМЕНИТЬ OOC</button>
-                <button id="fawn-regen-ooc" class="fawn-btn fawn-btn-secondary">🔄 Новая генерация</button>
-                <button id="fawn-cancel" class="fawn-btn fawn-btn-secondary">❌ Отмена</button>
+            <div style="background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeQuoteColor); border-radius:10px; padding:15px; margin-bottom:15px; min-height:120px;">
+                <textarea id="fawn-ooc-text" style="width:100%; height:100px; background:transparent; border:none; color:var(--SmartThemeQuoteColor); font-family:monospace; font-size:14px; resize:vertical; outline:none;">${text}</textarea>
             </div>
-            <div class="fawn-footer">Применит как системную инструкцию боту</div>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;">
+                <button id="fawn-apply-ooc" class="menu_button" style="background:var(--SmartThemeQuoteColor); color:white; padding:12px 20px; font-size:16px;">✅ ПРИМЕНИТЬ OOC</button>
+                <button id="fawn-regen-ooc" class="menu_button" style="padding:12px 20px;">🔄 Новая генерация</button>
+                <button id="fawn-cancel" class="menu_button">❌ Отмена</button>
+            </div>
+            <div style="font-size:12px; color:var(--SmartThemeBodyColor); opacity:0.7; text-align:center;">
+                Применит как системную инструкцию боту
+            </div>
         </div>
-
-        <style>
-        .fawn-preview-panel { width: 560px !important; min-height: 420px; }
-        .fawn-subtitle {
-            text-align: center !important;
-            margin-bottom: 20px !important;
-            color: var(--SmartThemeBodyColor) !important;
-            opacity: 0.9 !important;
-            font-size: 15px !important;
-        }
-        .fawn-ooc-container {
-            background: rgba(var(--SmartThemeBlurTintColor-rgb), 0.6) !important;
-            border: 2px solid var(--SmartThemeQuoteColor) !important;
-            border-radius: 16px !important;
-            padding: 20px !important;
-            margin-bottom: 24px !important;
-            min-height: 140px !important;
-            backdrop-filter: blur(12px) !important;
-        }
-        .fawn-ooc-textarea {
-            width: 100% !important;
-            height: 120px !important;
-            background: transparent !important;
-            border: none !important;
-            color: var(--SmartThemeQuoteColor) !important;
-            font-family: 'Consolas', 'Monaco', monospace !important;
-            font-size: 15px !important;
-            resize: vertical !important;
-            outline: none !important;
-            line-height: 1.6 !important;
-        }
-        .fawn-btn-large { padding: 16px 28px !important; font-size: 16px !important; }
-        .fawn-footer {
-            font-size: 13px !important;
-            color: var(--SmartThemeBodyColor) !important;
-            opacity: 0.7 !important;
-            text-align: center !important;
-            padding-top: 16px !important;
-            border-top: 1px solid rgba(var(--SmartThemeBorderColor-rgb), 0.3);
-        }
-        </style>
     `;
     document.body.appendChild(popup);
 
@@ -456,7 +189,6 @@ function showOOCPreview(text, type) {
     });
 
     document.getElementById("fawn-cancel").addEventListener("click", closePopup);
-    document.querySelector(".fawn-close-btn").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
@@ -471,22 +203,15 @@ function showManualOOC(type) {
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div id="fawn-popup-bg" class="fawn-overlay"></div>
-        <div class="fawn-panel">
-            <div class="fawn-header">
-                <div class="fawn-title">${type === 'timeskip' ? '🩰 Time Skip' : '🥀 Plot Twist'}</div>
-                <button class="fawn-close-btn">×</button>
-            </div>
-            <textarea id="fawn-manual-ooc" class="fawn-textarea fawn-manual-textarea">${defaultOOC}</textarea>
-            <div class="fawn-buttons">
-                <button id="fawn-apply-manual" class="fawn-btn fawn-btn-primary">✅ Применить OOC</button>
-                <button id="fawn-regen" class="fawn-btn fawn-btn-secondary">🔄 Попробовать снова</button>
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeBorderColor); border-radius:15px; padding:20px; z-index:99999; width:450px; max-width:90%;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:18px; text-align:center;">${type === 'timeskip' ? '🩰 Time Skip' : '🥀 Plot Twist'}</div>
+            <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:15px 0; padding:12px; border:2px solid var(--SmartThemeBorderColor); border-radius:8px; background:var(--SmartThemeBlurTintColor); color:var(--SmartThemeBodyColor); resize:vertical;">${defaultOOC}</textarea>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeQuoteColor);">✅ Применить OOC</button>
+                <button id="fawn-regen" class="menu_button">🔄 Попробовать снова</button>
             </div>
         </div>
-
-        <style>
-        .fawn-manual-textarea { height: 120px !important; margin: 0 !important; }
-        </style>
     `;
     document.body.appendChild(popup);
 
@@ -504,7 +229,6 @@ function showManualOOC(type) {
         setTimeout(() => drivePlot(lastType), 100);
     });
 
-    document.querySelector(".fawn-close-btn").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
@@ -620,7 +344,7 @@ function extractOOC(response) {
         const cut = text.substring(0, 500);
         const lastEnd = Math.max(
             cut.lastIndexOf(')'),
-            cut.lastIndexOf('.'), 
+            cut.lastIndexOf('.'),
             cut.lastIndexOf('!')
         );
         if (lastEnd > 100) {
@@ -633,9 +357,9 @@ function extractOOC(response) {
     return text;
 }
 
-// ========== КРАСИВАЯ КНОПКА И МЕНЮ ==========
+// ========== ИСПРАВЛЕННАЯ КНОПКА И МЕНЮ ==========
 function addFawnMenu() {
-    if (document.getElementById("fawn-plot-container")) return true;
+    if (document.getElementById("fawn-plot-btn")) return true;
 
     const container = document.getElementById("leftSendForm") ||
                      document.getElementById("form_sheld") ||
@@ -643,164 +367,108 @@ function addFawnMenu() {
 
     if (!container) return false;
 
-    const plotContainer = document.createElement("div");
-    plotContainer.id = "fawn-plot-container";
-    plotContainer.className = "fawn-plot-container";
+    // Находим другие кнопки для примера стилей
+    const existingButtons = container.querySelectorAll("button, .menu_button, .fa-icon-button");
+    let buttonSize = "28px";
+    let buttonPadding = "8px";
+    let fontSize = "16px";
 
+    if (existingButtons.length > 0) {
+        const firstButton = existingButtons[0];
+        const computedStyle = window.getComputedStyle(firstButton);
+        if (firstButton.clientHeight > 0) {
+            buttonSize = firstButton.clientHeight + "px";
+        }
+        if (parseFloat(computedStyle.padding) > 0) {
+            buttonPadding = computedStyle.padding;
+        }
+        if (computedStyle.fontSize) {
+            fontSize = computedStyle.fontSize;
+        }
+    }
+
+    // Кнопка (основная иконка)
     const btn = document.createElement("div");
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.className = "fawn-plot-btn";
-
-    const menu = document.createElement("div");
-    menu.id = "fawn-menu";
-    menu.className = "fawn-menu";
-
-    menu.innerHTML = `
-        <div class="fawn-menu-item" data-action="timeskip">
-            <span class="fawn-icon">🩰</span>
-            <span class="fawn-label">Time Skip</span>
-        </div>
-        <div class="fawn-menu-item" data-action="twist">
-            <span class="fawn-icon">🥀</span>
-            <span class="fawn-label">Plot Twist</span>
-        </div>
-        <div id="fawn-last-ooc-option" class="fawn-menu-item fawn-last-ooc" data-action="lastooc">
-            <span class="fawn-icon">✨</span>
-            <span class="fawn-label">Последний OOC</span>
-        </div>
-        <div class="fawn-menu-divider"></div>
-        <div class="fawn-menu-item" data-action="settings">
-            <span class="fawn-icon">⚙️</span>
-            <span class="fawn-label">Настройки</span>
-        </div>
+    btn.style.cssText = `
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: ${buttonSize};
+        height: ${buttonSize};
+        padding: ${buttonPadding};
+        color: var(--SmartThemeQuoteColor);
+        font-size: ${fontSize};
+        margin: 0 2px;
+        border-radius: 5px;
+        transition: all 0.2s;
+        user-select: none;
     `;
 
-    plotContainer.appendChild(btn);
-    plotContainer.appendChild(menu);
-    container.insertBefore(plotContainer, container.firstChild);
+    btn.addEventListener("mouseenter", function() {
+        this.style.background = "var(--SmartThemeBorderColor)";
+    });
+    
+    btn.addEventListener("mouseleave", function() {
+        this.style.background = "";
+    });
 
-    // Глобальные стили для кнопки и меню
-    if (!document.getElementById('fawn-styles')) {
-        const style = document.createElement('style');
-        style.id = 'fawn-styles';
-        style.textContent = `
-            .fawn-plot-container {
-                position: relative !important;
-                display: inline-block !important;
-            }
-            
-            .fawn-plot-btn {
-                cursor: pointer !important;
-                padding: 12px !important;
-                color: var(--SmartThemeQuoteColor) !important;
-                font-size: 20px !important;
-                border-radius: 16px !important;
-                background: rgba(var(--SmartThemeBlurTintColor-rgb), 0.6) !important;
-                backdrop-filter: blur(12px) !important;
-                border: 2px solid rgba(var(--SmartThemeQuoteColor-rgb), 0.2) !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-                position: relative !important;
-                overflow: hidden !important;
-            }
-            
-            .fawn-plot-btn::before {
-                content: '' !important;
-                position: absolute !important;
-                top: 0 !important;
-                left: -100% !important;
-                width: 100% !important;
-                height: 100% !important;
-                background: linear-gradient(90deg, transparent, rgba(var(--SmartThemeQuoteColor-rgb), 0.2), transparent) !important;
-                transition: left 0.6s !important;
-            }
-            
-            .fawn-plot-btn:hover::before { left: 100% !important; }
-            .fawn-plot-btn:hover {
-                transform: translateY(-2px) scale(1.05) !important;
-                background: rgba(var(--SmartThemeQuoteColor-rgb), 0.15) !important;
-                border-color: var(--SmartThemeQuoteColor) !important;
-                box-shadow: 0 8px 25px rgba(var(--SmartThemeQuoteColor-rgb), 0.3) !important;
-            }
-            
-            .fawn-menu {
-                display: none !important;
-                position: absolute !important;
-                bottom: 55px !important;
-                left: 0 !important;
-                background: var(--SmartThemeBlurTintColor) !important;
-                backdrop-filter: blur(25px) !important;
-                border: 2px solid rgba(var(--SmartThemeBorderColor-rgb), 0.6) !important;
-                border-radius: 20px !important;
-                padding: 8px !important;
-                z-index: 1001 !important;
-                min-width: 160px !important;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
-                animation: fawn-menu-slide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            }
-            
-            .fawn-menu-item {
-                display: flex !important;
-                align-items: center !important;
-                gap: 12px !important;
-                padding: 14px 16px !important;
-                cursor: pointer !important;
-                border-radius: 14px !important;
-                color: var(--SmartThemeBodyColor) !important;
-                font-size: 15px !important;
-                font-weight: 500 !important;
-                transition: all 0.2s ease !important;
-                margin: 2px 0 !important;
-            }
-            
-            .fawn-menu-item:hover {
-                background: rgba(var(--SmartThemeQuoteColor-rgb), 0.15) !important;
-                color: var(--SmartThemeQuoteColor) !important;
-                transform: translateX(4px) !important;
-            }
-            
-            .fawn-last-ooc {
-                color: var(--SmartThemeQuoteColor) !important;
-                background: rgba(var(--SmartThemeQuoteColor-rgb), 0.1) !important;
-            }
-            
-            .fawn-menu-divider {
-                height: 1px !important;
-                background: rgba(var(--SmartThemeBorderColor-rgb), 0.4) !important;
-                margin: 6px 0 !important;
-                border-radius: 1px !important;
-            }
-            
-            .fawn-icon { font-size: 18px !important; }
-            .fawn-label { flex: 1; }
-            
-            @keyframes fawn-menu-slide {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px) scale(0.95);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    // Меню (отдельный элемент, абсолютное позиционирование)
+    const menu = document.createElement("div");
+    menu.id = "fawn-menu";
+    menu.style.cssText = `
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 5px);
+        left: 0;
+        background: var(--SmartThemeBlurTintColor);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--SmartThemeBorderColor);
+        border-radius: 8px;
+        padding: 6px;
+        z-index: 1001;
+        min-width: 150px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-height: 300px;
+        overflow-y: auto;
+    `;
+    
+    menu.innerHTML = `
+        <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0;">🩰 Time Skip</div>
+        <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0;">🥀 Plot Twist</div>
+        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeQuoteColor); border-radius:4px; margin:2px 0; display:none; font-weight:bold;">✨ Последний OOC</div>
+        <hr style="border:none; border-top:1px solid var(--SmartThemeBorderColor); margin:5px 0;">
+        <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.8; border-radius:4px; margin:2px 0;">⚙️ Настройки</div>
+    `;
 
+    // Вставляем кнопку в контейнер формы
+    container.insertBefore(btn, container.firstChild);
+    
+    // Добавляем меню в body, но позиционируем относительно кнопки
+    document.body.appendChild(menu);
+
+    // Обработчик клика по кнопке
     btn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
         closePopup();
         updateMenuState();
         
+        // Позиционируем меню рядом с кнопкой
+        const btnRect = btn.getBoundingClientRect();
+        menu.style.left = btnRect.left + "px";
+        menu.style.bottom = (window.innerHeight - btnRect.top + 5) + "px";
+        
+        // Показываем/скрываем меню
         const isMenuVisible = menu.style.display === "block";
         menu.style.display = isMenuVisible ? "none" : "block";
     });
 
-    menu.querySelectorAll(".fawn-menu-item").forEach(opt => {
+    // Обработчики для пунктов меню
+    menu.querySelectorAll(".fawn-option").forEach(opt => {
         opt.addEventListener("click", function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -815,12 +483,33 @@ function addFawnMenu() {
                 drivePlot(action);
             }
         });
+
+        opt.addEventListener("mouseenter", function() {
+            this.style.background = "var(--SmartThemeQuoteColor)";
+            this.style.color = "white";
+        });
+        
+        opt.addEventListener("mouseleave", function() {
+            this.style.background = "";
+            this.style.color = this.dataset.action === "lastooc" ? 
+                "var(--SmartThemeQuoteColor)" : "var(--SmartThemeBodyColor)";
+        });
     });
 
+    // Закрытие меню при клике вне
     document.addEventListener("click", function(e) {
-        if (!plotContainer.contains(e.target)) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
             menu.style.display = "none";
         }
+    });
+
+    // Закрытие меню при скролле или изменении размера окна
+    window.addEventListener("scroll", function() {
+        menu.style.display = "none";
+    });
+    
+    window.addEventListener("resize", function() {
+        menu.style.display = "none";
     });
 
     return true;
@@ -833,11 +522,18 @@ eventSource.on(event_types.MESSAGE_SWIPED, clearPlotPrompt);
 // ========== ЗАПУСК ==========
 jQuery(() => {
     loadSettings();
-    addFawnMenu();
     
+    // Создаем кнопку при загрузке
     setTimeout(() => {
-        if (!document.getElementById("fawn-plot-container")) {
+        if (!document.getElementById("fawn-plot-btn")) {
             addFawnMenu();
         }
-    }, 1000);
+    }, 500);
+    
+    // Запасной таймер на случай, если контейнер ещё не готов
+    setTimeout(() => {
+        if (!document.getElementById("fawn-plot-btn")) {
+            addFawnMenu();
+        }
+    }, 2000);
 });
