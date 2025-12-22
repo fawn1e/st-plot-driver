@@ -1,5 +1,10 @@
+// ===== ПРОВЕРКА ЧТО КОД ЗАГРУЗИЛСЯ =====
+console.log("🩰 Fawn: Файл загружается...");
+
 import { extension_settings, getContext } from "../../../extensions.js";
 import { generateQuietPrompt } from "../../../../script.js";
+
+console.log("🩰 Fawn: Импорты прошли!");
 
 const extensionName = "plot-driver-fawn";
 const defaultSettings = {
@@ -22,6 +27,7 @@ function closePopup() {
 
 // ========== ОКОШКО ПРЕВЬЮ ==========
 function showPreviewPopup(text, type) {
+    console.log("🩰 Fawn: Показываю popup!");
     closePopup();
 
     const popup = document.createElement("div");
@@ -63,10 +69,11 @@ function showPreviewPopup(text, type) {
 
 // ========== ГЛАВНАЯ ФУНКЦИЯ ==========
 async function drivePlot(type) {
-    console.log("=== Fawn: Старт! Тип:", type, "===");
+    console.log("🩰 Fawn: drivePlot вызван! type =", type);
+    alert("Fawn: Кнопка нажата! Тип: " + type);  // <-- ВРЕМЕННО! Чтобы точно увидеть
 
     if (isGenerating) {
-        console.log("Fawn: Уже генерирую, выхожу");
+        console.log("🩰 Fawn: Уже генерирую");
         return;
     }
 
@@ -80,6 +87,7 @@ async function drivePlot(type) {
 
     try {
         const context = getContext();
+        console.log("🩰 Fawn: Чат:", context.chat?.length, "сообщений");
 
         if (!context.chat || context.chat.length === 0) {
             toastr.warning("Начни чат сначала! 💕");
@@ -99,58 +107,49 @@ async function drivePlot(type) {
 Recent story:
 ${chatHistory}
 
-Write ONLY the OOC direction. 2-3 sentences. No thinking, no explanations.`;
+Write ONLY the OOC direction. 2-3 sentences.`;
 
-        console.log("Fawn: Отправляю запрос...");
+        console.log("🩰 Fawn: Отправляю запрос...");
 
         const response = await generateQuietPrompt(finalPrompt);
 
-        // ===== ОТЛАДКА =====
-        console.log("Fawn: === ОТВЕТ ===");
-        console.log("Fawn: typeof =", typeof response);
-        console.log("Fawn: value =", response);
-        console.log("Fawn: JSON =", JSON.stringify(response));
-        console.log("Fawn: =============");
-        // ===================
+        console.log("🩰 Fawn: ОТВЕТ:", typeof response, response);
+        alert("Fawn: Ответ получен! Тип: " + typeof response);  // <-- ВРЕМЕННО!
 
-        // Проверяем разные варианты ответа
         let text = "";
-
         if (typeof response === "string") {
             text = response;
         } else if (response && typeof response === "object") {
-            // Может это объект с полем text, message, content и т.д.
-            text = response.text || response.message || response.content || response.mes || "";
+            text = response.text || response.message || response.content || response.mes || JSON.stringify(response);
         }
 
-        // Чистим от think тегов
         text = text
             .replace(/<think>[\s\S]*?<\/think>/gi, '')
             .replace(/<think>[\s\S]*/gi, '')
             .replace(/<\/think>/gi, '')
             .trim();
 
-        console.log("Fawn: Очищенный текст:", text);
+        console.log("🩰 Fawn: Очищенный:", text);
 
         if (text) {
             showPreviewPopup(text, type);
         } else {
-            toastr.warning("Пустой ответ, попробуй ещё раз! 🔄");
+            toastr.warning("Пустой ответ! 🔄");
         }
 
     } catch (error) {
-        console.error("Fawn ОШИБКА:", error);
+        console.error("🩰 Fawn ОШИБКА:", error);
+        alert("Fawn ОШИБКА: " + error.message);  // <-- ВРЕМЕННО!
         toastr.error("Ошибка: " + error.message);
     } finally {
         isGenerating = false;
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
-        console.log("Fawn: Готов!");
     }
 }
 
-// ========== КНОПКА — НЕ ТРОГАЕМ! ==========
+// ========== КНОПКА ==========
 function addFawnMenu() {
     if (document.getElementById("fawn-plot-btn")) return true;
 
@@ -158,9 +157,9 @@ function addFawnMenu() {
                    || document.getElementById("form_sheld")
                    || document.querySelector("#send_form");
 
-    if (!container) {
-        return false;
-    }
+    if (!container) return false;
+
+    console.log("🩰 Fawn: Создаю кнопку!");
 
     const btn = document.createElement("div");
     btn.id = "fawn-plot-btn";
@@ -197,12 +196,14 @@ function addFawnMenu() {
     container.insertBefore(btn, container.firstChild);
 
     btn.addEventListener("click", (e) => {
+        console.log("🩰 Fawn: Клик на кнопку!");
         e.stopPropagation();
         menu.style.display = menu.style.display === "none" ? "block" : "none";
     });
 
     menu.querySelectorAll(".fawn-option").forEach(opt => {
         opt.addEventListener("click", (e) => {
+            console.log("🩰 Fawn: Выбрано:", opt.dataset.type);
             e.stopPropagation();
             menu.style.display = "none";
             drivePlot(opt.dataset.type);
@@ -220,15 +221,18 @@ function addFawnMenu() {
         menu.style.display = "none";
     });
 
-    console.log("🩰 Fawn's Plot Driver готов!");
+    console.log("🩰 Fawn: Кнопка создана!");
     return true;
 }
 
 // ========== ЗАПУСК ==========
 jQuery(() => {
+    console.log("🩰 Fawn: jQuery ready!");
     const tryAdd = setInterval(() => {
         if (addFawnMenu()) {
             clearInterval(tryAdd);
         }
     }, 1000);
 });
+
+console.log("🩰 Fawn: Конец файла!");
