@@ -1,6 +1,8 @@
 ## Fawn's Plot Driver 📝
 An AI-powered narrative control extension for SillyTavern that helps generate plot-driving OOC (Out Of Character) instructions.
 
+![interface](menu.png)
+
 **Author's Note**: I'm not a professional coder, so please explain any issues in simple terms! <3
 
 ## Features ✨
