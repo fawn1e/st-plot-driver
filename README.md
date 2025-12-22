@@ -41,6 +41,7 @@ That's it! You should now see a pen icon (`✒️`) in your chat interface.
 
 ### Preferences System
 ![interface](prefs.png)
+
 Before generation, you can specify preferences:
 - **Skip to specific times** (morning, evening, next week)
 - **Add character details** (specific NPCs, locations, events)
@@ -50,6 +51,7 @@ Simply enter your preferences in the popup before generation!
 
 ### OOC Preview & Editing
 ![generation](generation.png)
+
 After generation:
 1. Review the AI-generated OOC
 2. Edit the text if needed
