@@ -450,6 +450,10 @@ function addFawnStyles() {
             overflow-y: auto;
         }
         
+        #fawn-menu.fawn-menu-visible {
+            display: block;
+        }
+        
         .fawn-option {
             display: flex;
             align-items: center;
@@ -461,6 +465,7 @@ function addFawnStyles() {
             margin: 2px 0;
             transition: all 0.15s ease;
             font-size: 14px;
+            white-space: nowrap;
         }
         
         .fawn-option:hover {
@@ -692,6 +697,16 @@ function addFawnStyles() {
         .fawn-popup-container {
             animation: fawn-fadeIn 0.2s ease-out;
         }
+        
+        /* Анимация для меню */
+        @keyframes fawn-menu-fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #fawn-menu.fawn-menu-visible {
+            animation: fawn-menu-fadeIn 0.15s ease-out;
+        }
     `;
     
     document.head.appendChild(styles);
@@ -715,25 +730,28 @@ function addFawnMenu() {
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver - Manage story progression";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
+    btn.setAttribute("aria-label", "Plot Driver Menu");
     
     // Меню
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-hidden", "true");
     menu.innerHTML = `
-        <div class="fawn-option" data-action="timeskip">
+        <div class="fawn-option" data-action="timeskip" role="menuitem" tabindex="-1">
             <i class="fa-solid fa-clock"></i>
             <span>Time Skip</span>
         </div>
-        <div class="fawn-option" data-action="twist">
+        <div class="fawn-option" data-action="twist" role="menuitem" tabindex="-1">
             <i class="fa-solid fa-bolt"></i>
             <span>Plot Twist</span>
         </div>
-        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="display:none;">
+        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" role="menuitem" tabindex="-1" style="display:none;">
             <i class="fa-solid fa-sparkles"></i>
             <span>Last Generated OOC</span>
         </div>
         <hr style="border:none; height:1px; background:var(--SmartThemeBorderColor); margin:6px 0;">
-        <div class="fawn-option" data-action="settings">
+        <div class="fawn-option" data-action="settings" role="menuitem" tabindex="-1">
             <i class="fa-solid fa-gear"></i>
             <span>Settings</span>
         </div>
@@ -743,21 +761,39 @@ function addFawnMenu() {
     container.insertBefore(btn, container.firstChild);
     document.body.appendChild(menu);
 
+    // Функция для показа/скрытия меню
+    function toggleMenu() {
+        const isVisible = menu.classList.contains("fawn-menu-visible");
+        
+        if (isVisible) {
+            menu.classList.remove("fawn-menu-visible");
+            menu.setAttribute("aria-hidden", "true");
+        } else {
+            closePopup();
+            updateMenuState();
+            
+            // Позиционируем меню
+            const btnRect = btn.getBoundingClientRect();
+            menu.style.left = btnRect.left + "px";
+            menu.style.top = (btnRect.top + btnRect.height + 5) + "px";
+            
+            // Показываем меню
+            menu.classList.add("fawn-menu-visible");
+            menu.setAttribute("aria-hidden", "false");
+            
+            // Фокус на первом элементе меню
+            setTimeout(() => {
+                const firstOption = menu.querySelector('.fawn-option');
+                if (firstOption) firstOption.focus();
+            }, 10);
+        }
+    }
+
     // Обработчик клика по кнопке
     btn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
-        closePopup();
-        updateMenuState();
-        
-        // Позиционируем меню
-        const btnRect = btn.getBoundingClientRect();
-        menu.style.left = btnRect.left + "px";
-        menu.style.top = (btnRect.top + btnRect.height + 5) + "px";
-        
-        // Показываем/скрываем меню
-        const isMenuVisible = menu.style.display === "block";
-        menu.style.display = isMenuVisible ? "none" : "block";
+        toggleMenu();
     });
 
     // Обработчики для пунктов меню
@@ -765,7 +801,8 @@ function addFawnMenu() {
         opt.addEventListener("click", function(e) {
             e.preventDefault();
             e.stopPropagation();
-            menu.style.display = "none";
+            menu.classList.remove("fawn-menu-visible");
+            menu.setAttribute("aria-hidden", "true");
             const action = this.dataset.action;
             
             if (action === "settings") {
@@ -776,22 +813,46 @@ function addFawnMenu() {
                 drivePlot(action);
             }
         });
+
+        // Обработка клавиатуры
+        opt.addEventListener("keydown", function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
+            } else if (e.key === 'Escape') {
+                menu.classList.remove("fawn-menu-visible");
+                menu.setAttribute("aria-hidden", "true");
+                btn.focus();
+            }
+        });
     });
 
     // Закрытие меню при клике вне
     document.addEventListener("click", function(e) {
         if (!btn.contains(e.target) && !menu.contains(e.target)) {
-            menu.style.display = "none";
+            menu.classList.remove("fawn-menu-visible");
+            menu.setAttribute("aria-hidden", "true");
+        }
+    });
+
+    // Закрытие меню по клавише Escape
+    document.addEventListener("keydown", function(e) {
+        if (e.key === 'Escape' && menu.classList.contains("fawn-menu-visible")) {
+            menu.classList.remove("fawn-menu-visible");
+            menu.setAttribute("aria-hidden", "true");
+            btn.focus();
         }
     });
 
     // Закрытие меню при скролле или изменении размера окна
     window.addEventListener("scroll", function() {
-        menu.style.display = "none";
+        menu.classList.remove("fawn-menu-visible");
+        menu.setAttribute("aria-hidden", "true");
     });
     
     window.addEventListener("resize", function() {
-        menu.style.display = "none";
+        menu.classList.remove("fawn-menu-visible");
+        menu.setAttribute("aria-hidden", "true");
     });
 
     return true;
@@ -808,14 +869,20 @@ jQuery(() => {
     // Создаем кнопку при загрузке
     setTimeout(() => {
         if (!document.getElementById("fawn-plot-btn")) {
-            addFawnMenu();
+            const success = addFawnMenu();
+            if (!success) {
+                console.warn("Fawn Plot Driver: Could not find container for button. Retrying...");
+            }
         }
     }, 500);
     
     // Запасной таймер
     setTimeout(() => {
         if (!document.getElementById("fawn-plot-btn")) {
-            addFawnMenu();
+            const success = addFawnMenu();
+            if (!success) {
+                console.error("Fawn Plot Driver: Failed to initialize. Container not found.");
+            }
         }
     }, 2000);
 });
