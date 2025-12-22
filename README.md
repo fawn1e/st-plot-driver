@@ -141,7 +141,7 @@ Uses SillyTavern's extension API:
 
 You can:
 - Report issues on GitHub
-- Join my [Telegram chanell](https://t.me/dearfawwn) to see any bugs fixed or announcments of updates
+- Join my [Telegram channel](https://t.me/dearfawwn) to see any bugs fixed or announcements of updates (It also has bots recommendations, my preset updates and general stuff so be ready to dig)
 - Contact me directly in Telegram
 
 ## Credits 🙏
