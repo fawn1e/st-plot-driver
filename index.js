@@ -3,85 +3,142 @@ import { generateQuietPrompt } from "../../../../script.js";
 
 const extensionName = "plot-driver-fawn";
 const defaultSettings = {
-    timeskipPrompt: "You are a master story architect. Analyze the story and provide a logical time-skip. Format: (OOC: [transition description])",
-    twistPrompt: "You are a genius narrative stylist. Introduce a significant plot twist. Format: (OOC: [twist description])"
+    timeskipPrompt: "You are a master story architect. Analyze the story and provide a logical time-skip that moves the narrative forward elegantly.",
+    twistPrompt: "You are a genius narrative stylist. Introduce a dramatic and unexpected plot twist that enriches the story."
 };
 
-// Загрузка настроек
+// Загружаем настройки
 if (!extension_settings[extensionName]) {
     extension_settings[extensionName] = defaultSettings;
 }
 
+// Главная функция — делает магию! ✨
 async function drivePlot(type) {
-    const icon = document.querySelector('#fawn-plot-driver-menu i');
-    if (icon) {
-        icon.classList.remove('fa-star');
-        icon.classList.add('fa-pen-nib', 'fawn-writing');
+    const button = document.getElementById("fawn-plot-btn");
+    if (button) {
+        button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
     }
 
-    const context = getContext();
-    const chatHistory = context.chat.slice(-20).map(m => `${m.character}: ${m.mes}`).join('\n');
-    const instruction = type === 'timeskip' ? extension_settings[extensionName].timeskipPrompt : extension_settings[extensionName].twistPrompt;
-
-    const finalPrompt = `[System Note: You are Fawn, the silent architect. Direct the scene elegantly.]\n\nStory Context:\n${chatHistory}\n\nTask: ${instruction}\n\nWrite ONLY the OOC message.`;
-
     try {
+        const context = getContext();
+
+        if (!context.chat || context.chat.length === 0) {
+            toastr.warning("Начни чат сначала! 💕");
+            return;
+        }
+
+        const chatHistory = context.chat.slice(-15).map(m =>
+            `${m.name || 'User'}: ${m.mes}`
+        ).join('\n');
+
+        const instruction = type === 'timeskip'
+            ? extension_settings[extensionName].timeskipPrompt
+            : extension_settings[extensionName].twistPrompt;
+
+        const finalPrompt = `${instruction}\n\nRecent story:\n${chatHistory}\n\nWrite a brief, elegant OOC direction for the next scene:`;
+
         const response = await generateQuietPrompt(finalPrompt);
+
         if (response) {
             const textarea = document.getElementById('send_textarea');
             textarea.value = response;
-            textarea.dispatchEvent(new Event('input'));
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            toastr.success("Готово! 🩰");
         }
     } catch (error) {
-        console.error("Fawn's Plot Driver Error:", error);
+        console.error("Fawn Error:", error);
+        toastr.error("Ой, что-то пошло не так: " + error.message);
     } finally {
-        if (icon) {
-            icon.classList.remove('fa-pen-nib', 'fawn-writing');
-            icon.classList.add('fa-star');
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
     }
 }
 
-// Функция вставки кнопки через стандартный jQuery Таверны
-function addFawnButton() {
-    if ($("#fawn-plot-driver-menu").length) return;
+// Создаём меню
+function addFawnMenu() {
+    if (document.getElementById("fawn-plot-btn")) return;
 
-    const menuHtml = `
-        <div id="fawn-plot-driver-menu" class="list_item" title="Fawn's Plot Driver">
-            <i class="fa-solid fa-star" style="color:#ffb7c5;"></i>
-            <div class="list_item_text">Fawn's Plot Driver</div>
-            <div id="plot-driver-options" style="display:none; position:absolute; left: 220px; top: 0; background:rgba(25,25,25,0.98); border:1px solid #ffb7c5; border-radius:12px; padding:8px; z-index:9999; min-width:180px; box-shadow: 0 4px 15px rgba(255,183,197,0.4);">
-                <div class="plot-item-fawn" data-type="timeskip" style="padding:10px; cursor:pointer; color:#fff;">🩰 Gentle Time Skip</div>
-                <div class="plot-item-fawn" data-type="twist" style="padding:10px; cursor:pointer; color:#fff;">🥀 Dramatic Twist</div>
-            </div>
-        </div>
+    const container = document.getElementById("leftSendForm")
+                   || document.getElementById("form_sheld")
+                   || document.querySelector("#send_form");
+
+    if (!container) {
+        console.log("Fawn: Жду интерфейс...");
+        return false;
+    }
+
+    // Кнопка
+    const btn = document.createElement("div");
+    btn.id = "fawn-plot-btn";
+    btn.title = "Fawn's Plot Driver";
+    btn.innerHTML = '<i class="fa-solid fa-star"></i>';
+    btn.style.cssText = `
+        cursor: pointer;
+        padding: 10px;
+        color: #ffb7c5;
+        font-size: 18px;
+        position: relative;
     `;
 
-    // Вставляем В НАЧАЛО списка расширений
-    $("#extensionsMenu").prepend(menuHtml);
+    // Меню
+    const menu = document.createElement("div");
+    menu.id = "fawn-menu";
+    menu.style.cssText = `
+        display: none;
+        position: absolute;
+        bottom: 45px;
+        left: 0;
+        background: #1a1a1a;
+        border: 2px solid #ffb7c5;
+        border-radius: 12px;
+        padding: 8px;
+        z-index: 9999;
+        min-width: 160px;
+    `;
+    menu.innerHTML = `
+        <div class="fawn-option" data-type="timeskip" style="padding:10px; cursor:pointer; color:#fff;">🩰 Time Skip</div>
+        <div class="fawn-option" data-type="twist" style="padding:10px; cursor:pointer; color:#fff;">🥀 Plot Twist</div>
+    `;
 
-    // Обработчики
-    $("#fawn-plot-driver-menu").on("click", function(e) {
+    btn.appendChild(menu);
+    container.insertBefore(btn, container.firstChild);
+
+    // Клики
+    btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        $("#plot-driver-options").toggle();
+        menu.style.display = menu.style.display === "none" ? "block" : "none";
     });
 
-    $(".plot-item-fawn").on("click", function(e) {
-        e.stopPropagation();
-        drivePlot($(this).data("type"));
-        $("#plot-driver-options").hide();
+    menu.querySelectorAll(".fawn-option").forEach(opt => {
+        opt.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.style.display = "none";
+            drivePlot(opt.dataset.type);
+        });
+
+        opt.addEventListener("mouseenter", () => {
+            opt.style.background = "rgba(255,183,197,0.2)";
+        });
+        opt.addEventListener("mouseleave", () => {
+            opt.style.background = "transparent";
+        });
     });
+
+    // Закрыть при клике снаружи
+    document.addEventListener("click", () => {
+        menu.style.display = "none";
+    });
+
+    console.log("🩰 Fawn's Plot Driver готов!");
+    return true;
 }
 
-// Ждем полной загрузки документа и интерфейса
-$(document).on('ready', function() {
-    setTimeout(addFawnButton, 1000);
+// Запуск
+jQuery(() => {
+    const tryAdd = setInterval(() => {
+        if (addFawnMenu()) {
+            clearInterval(tryAdd);
+        }
+    }, 1000);
 });
-
-// На всякий случай запускаем проверку каждые пару секунд, если меню еще не создано
-const retryInterval = setInterval(() => {
-    if ($("#extensionsMenu").length) {
-        addFawnButton();
-        if ($("#fawn-plot-driver-menu").length) clearInterval(retryInterval);
-    }
-}, 2000);
