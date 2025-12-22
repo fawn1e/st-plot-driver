@@ -1,53 +1,460 @@
-/* Анимация пишущего пера */
-@keyframes writing-glow {
-    0% { 
-        transform: rotate(0deg) translateY(0px); 
-        color: var(--pink-color, #ffb7c5); /* Используем переменную темы или розовый по умолчанию */
-        text-shadow: 0 0 5px var(--mainColorRelativeAlpha); 
+/* ========== FAWN PLOT DRIVER - СТИЛЬНОЕ ОФОРМЛЕНИЕ ========== */
+
+/* ===== КНОПКА ПЛАВАЮЩАЯ ===== */
+#fawn-plot-btn {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--SmartThemeQuoteColor) 0%, rgba(var(--SmartThemeQuoteColorRGB), 0.8) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 20px rgba(var(--SmartThemeQuoteColorRGB), 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 1px 3px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+#fawn-plot-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: fawn-shine 3s infinite linear;
+    pointer-events: none;
+}
+
+#fawn-plot-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+        0 8px 30px rgba(var(--SmartThemeQuoteColorRGB), 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+        0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+#fawn-plot-btn:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+#fawn-plot-btn i {
+    font-size: 22px;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+/* Анимация блеска */
+@keyframes fawn-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ===== МЕНЮ КОНТЕКСТНОЕ ===== */
+#fawn-menu {
+    position: fixed;
+    display: none;
+    min-width: 240px;
+    background: rgba(var(--SmartThemeBlurTintColorRGB), 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 16px;
+    padding: 8px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 8px 30px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    animation: fawn-menu-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: bottom left;
+}
+
+@keyframes fawn-menu-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(10px);
     }
-    25% { transform: rotate(-15deg) translateY(-2px); }
-    75% { transform: rotate(15deg) translateY(2px); }
-    100% { 
-        transform: rotate(0deg) translateY(0px); 
-        color: var(--text-color); 
-        text-shadow: 0 0 15px var(--pink-color, #ffb7c5); 
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
 
-.fawn-writing {
-    animation: writing-glow 0.7s infinite ease-in-out;
+/* ===== ОПЦИИ МЕНЮ ===== */
+.fawn-option {
+    padding: 12px 16px;
+    margin: 4px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--SmartThemeBodyColor);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Контейнер меню */
-#plot-driver-options {
-    background: var(--black75); /* Стандартный полупрозрачный фон Таверны */
-    border: 1px solid var(--pink-color, #ffb7c5);
-    backdrop-filter: blur(5px); /* Модный эффект размытия */
-    color: var(--text-color);
+.fawn-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--SmartThemeQuoteColor);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: -1;
 }
 
-/* Пункты меню */
-.plot-item {
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    color: var(--text-color);
+.fawn-option:hover {
+    color: white;
+    transform: translateX(4px);
+    background: var(--SmartThemeQuoteColor);
+    box-shadow: 0 4px 15px rgba(var(--SmartThemeQuoteColorRGB), 0.3);
 }
 
-.plot-item:hover {
-    background: var(--pink-color, #ffb7c5);
-    color: #000 !important; /* Текст становится темным на розовом фоне для читаемости */
-    padding-left: 15px;
-}
-
-/* Иконка на панели */
-#plot-driver-icon {
-    color: var(--text-color); /* Звездочка будет того же цвета, что и остальные кнопки */
-    transition: 0.3s;
-    opacity: 0.8;
-}
-
-#plot-driver-icon:hover {
+.fawn-option:hover::before {
     opacity: 1;
-    color: var(--pink-color, #ffb7c5);
-    filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
+}
+
+#fawn-last-ooc-option {
+    color: var(--SmartThemeQuoteColor);
+    font-weight: 600;
+    position: relative;
+}
+
+#fawn-last-ooc-option::after {
+    content: '✨';
+    position: absolute;
+    right: 12px;
+    animation: fawn-sparkle 2s infinite;
+}
+
+@keyframes fawn-sparkle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ===== POPUP ОСНОВНОЙ ===== */
+#fawn-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    animation: fawn-fade-in 0.3s ease;
+}
+
+#fawn-popup-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+@keyframes fawn-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===== КОНТЕЙНЕР POPUP ===== */
+.fawn-popup-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(var(--SmartThemeBlurTintColorRGB), 0.98);
+    backdrop-filter: blur(30px) saturate(200%);
+    border-radius: 24px;
+    padding: 30px;
+    width: 520px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: fawn-popup-appear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fawn-popup-appear {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* ===== ЗАГОЛОВОК ===== */
+.fawn-popup-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--SmartThemeQuoteColor);
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(var(--SmartThemeQuoteColorRGB), 0.3);
+    position: relative;
+}
+
+.fawn-popup-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--SmartThemeQuoteColor), transparent);
+}
+
+/* ===== ЛЕЙБЛЫ ===== */
+.fawn-popup-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--SmartThemeBodyColor);
+    margin-bottom: 8px;
+    opacity: 0.9;
+    letter-spacing: 0.3px;
+}
+
+/* ===== ТЕКСТОВЫЕ ПОЛЯ ===== */
+.fawn-popup-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 16px;
+    background: rgba(var(--SmartThemeBlurTintColorRGB), 0.8);
+    border: 2px solid rgba(var(--SmartThemeBorderColorRGB), 0.3);
+    border-radius: 12px;
+    color: var(--SmartThemeBodyColor);
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.fawn-popup-textarea:focus {
+    outline: none;
+    border-color: var(--SmartThemeQuoteColor);
+    box-shadow: 0 0 0 3px rgba(var(--SmartThemeQuoteColorRGB), 0.2);
+    background: rgba(var(--SmartThemeBlurTintColorRGB), 0.95);
+}
+
+/* ===== SLIDER ===== */
+#fawn-set-msgcount {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(var(--SmartThemeBorderColorRGB), 0.3);
+    outline: none;
+    -webkit-appearance: none;
+    margin: 15px 0;
+}
+
+#fawn-set-msgcount::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--SmartThemeQuoteColor);
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 2px 10px rgba(var(--SmartThemeQuoteColorRGB), 0.4);
+    transition: all 0.2s ease;
+}
+
+#fawn-set-msgcount::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 15px rgba(var(--SmartThemeQuoteColorRGB), 0.6);
+}
+
+#fawn-msg-count-label {
+    color: var(--SmartThemeQuoteColor);
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* ===== КНОПКИ ===== */
+.fawn-popup-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+.fawn-popup-buttons .menu_button {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px 24px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(var(--SmartThemeBorderColorRGB), 0.3);
+    color: var(--SmartThemeBodyColor);
+    backdrop-filter: blur(10px);
+}
+
+.fawn-popup-buttons .menu_button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(var(--SmartThemeQuoteColorRGB), 0.3);
+}
+
+#fawn-set-save {
+    background: linear-gradient(135deg, var(--SmartThemeQuoteColor), rgba(var(--SmartThemeQuoteColorRGB), 0.9)) !important;
+    color: white !important;
+}
+
+#fawn-set-reset:hover {
+    background: rgba(var(--SmartThemeBorderColorRGB), 0.5) !important;
+}
+
+#fawn-set-close:hover {
+    background: rgba(255, 100, 100, 0.2) !important;
+    color: #ff6b6b !important;
+}
+
+/* ===== PREVIEW OOC ===== */
+#fawn-ooc-text {
+    width: 100%;
+    min-height: 120px;
+    padding: 16px;
+    background: rgba(var(--SmartThemeBlurTintColorRGB), 0.8);
+    border: none;
+    border-radius: 12px;
+    color: var(--SmartThemeQuoteColor);
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+#fawn-ooc-text:focus {
+    outline: none;
+    background: rgba(var(--SmartThemeBlurTintColorRGB), 0.95);
+    box-shadow: 0 0 0 3px rgba(var(--SmartThemeQuoteColorRGB), 0.2) inset;
+}
+
+/* ===== АНИМАЦИЯ ГЕНЕРАЦИИ ===== */
+.fa-spin {
+    animation: fawn-spin 1s linear infinite;
+}
+
+@keyframes fawn-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Пульсация для кнопки во время генерации */
+#fawn-plot-btn.generating {
+    animation: fawn-pulse 1.5s ease-in-out infinite;
+    box-shadow: 
+        0 0 0 0 rgba(var(--SmartThemeQuoteColorRGB), 0.7),
+        0 4px 20px rgba(var(--SmartThemeQuoteColorRGB), 0.5);
+}
+
+@keyframes fawn-pulse {
+    0% {
+        box-shadow: 
+            0 0 0 0 rgba(var(--SmartThemeQuoteColorRGB), 0.7),
+            0 4px 20px rgba(var(--SmartThemeQuoteColorRGB), 0.5);
+    }
+    70% {
+        box-shadow: 
+            0 0 0 15px rgba(var(--SmartThemeQuoteColorRGB), 0),
+            0 4px 20px rgba(var(--SmartThemeQuoteColorRGB), 0.5);
+    }
+    100% {
+        box-shadow: 
+            0 0 0 0 rgba(var(--SmartThemeQuoteColorRGB), 0),
+            0 4px 20px rgba(var(--SmartThemeQuoteColorRGB), 0.5);
+    }
+}
+
+/* ===== ОТЗЫВЫ И TOASTR ===== */
+.toast-success {
+    background: linear-gradient(135deg, var(--SmartThemeQuoteColor), rgba(var(--SmartThemeQuoteColorRGB), 0.9)) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(var(--SmartThemeQuoteColorRGB), 0.3) !important;
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+    #fawn-plot-btn {
+        width: 44px;
+        height: 44px;
+        margin-right: 8px;
+    }
+    
+    .fawn-popup-content {
+        padding: 20px;
+        width: 95vw;
+    }
+    
+    .fawn-popup-buttons .menu_button {
+        min-width: 100px;
+        padding: 12px 16px;
+    }
+    
+    #fawn-menu {
+        min-width: 200px;
+    }
+}
+
+/* ===== SCROLLBAR СТИЛЬНЫЙ ===== */
+.fawn-popup-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fawn-popup-content::-webkit-scrollbar-track {
+    background: rgba(var(--SmartThemeBorderColorRGB), 0.2);
+    border-radius: 4px;
+}
+
+.fawn-popup-content::-webkit-scrollbar-thumb {
+    background: var(--SmartThemeQuoteColor);
+    border-radius: 4px;
+}
+
+.fawn-popup-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.9);
 }
