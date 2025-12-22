@@ -875,14 +875,4 @@ jQuery(() => {
             }
         }
     }, 500);
-    
-    // Запасной таймер
-    setTimeout(() => {
-        if (!document.getElementById("fawn-plot-btn")) {
-            const success = addFawnMenu();
-            if (!success) {
-                console.error("Fawn Plot Driver: Failed to initialize. Container not found.");
-            }
-        }
-    }, 2000);
 });
