@@ -18,6 +18,7 @@ if (!extension_settings[extensionName]) {
 
 let lastType = null;
 let isGenerating = false;
+let lastGeneratedOOC = null; // 🩰 СОХРАНЯЕМ ПОСЛЕДНИЙ OOC
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
@@ -55,6 +56,10 @@ ${text}
         null,
         extension_prompt_roles.SYSTEM
     );
+
+    // 🩰 После применения очищаем сохранённый OOC
+    lastGeneratedOOC = null;
+    updateMenuState();
 }
 
 // ========== ОЧИСТИТЬ OOC ПРОМПТ ==========
@@ -69,6 +74,18 @@ function clearPlotPrompt() {
         null,
         extension_prompt_roles.SYSTEM
     );
+}
+
+// ========== ОБНОВИТЬ СОСТОЯНИЕ МЕНЮ ==========
+function updateMenuState() {
+    const lastOocOption = document.getElementById("fawn-last-ooc-option");
+    if (lastOocOption) {
+        if (lastGeneratedOOC) {
+            lastOocOption.style.display = "block";
+        } else {
+            lastOocOption.style.display = "none";
+        }
+    }
 }
 
 // ========== ОКНО НАСТРОЕК ==========
@@ -276,6 +293,9 @@ OOC:`;
         }
 
         if (oocText?.length > 5) {
+            // 🩰 СОХРАНЯЕМ OOC НА СЛУЧАЙ МИСКЛИКА
+            lastGeneratedOOC = { text: oocText, type: type };
+            updateMenuState();
             showOOCPreview(oocText, type);
         } else {
             toastr.warning("OOC не сгенерировался 😅");
@@ -291,6 +311,15 @@ OOC:`;
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
+    }
+}
+
+// ========== ПОКАЗАТЬ ПОСЛЕДНИЙ OOC ==========
+function showLastOOC() {
+    if (lastGeneratedOOC) {
+        showOOCPreview(lastGeneratedOOC.text, lastGeneratedOOC.type);
+    } else {
+        toastr.info("Нет сохранённого OOC! Сгенерируй новый 💕");
     }
 }
 
@@ -356,6 +385,7 @@ function addFawnMenu() {
     menu.innerHTML = `
         <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🩰 Time Skip</div>
         <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🥀 Plot Twist</div>
+        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeQuoteColor); display:none;">✨ Последний OOC</div>
         <hr style="border:none; border-top:1px solid var(--SmartThemeBorderColor); margin:5px 0;">
         <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7;">⚙️ Настройки</div>
     `;
@@ -367,6 +397,7 @@ function addFawnMenu() {
         e.preventDefault();
         e.stopPropagation();
         closePopup();
+        updateMenuState(); // 🩰 Обновляем видимость кнопки "Последний OOC"
         menu.style.display = menu.style.display === "block" ? "none" : "block";
     });
 
@@ -378,6 +409,8 @@ function addFawnMenu() {
             const action = this.dataset.action;
             if (action === "settings") {
                 showSettingsPopup();
+            } else if (action === "lastooc") {
+                showLastOOC();
             } else {
                 drivePlot(action);
             }
@@ -389,7 +422,7 @@ function addFawnMenu() {
         });
         opt.addEventListener("mouseleave", function() {
             this.style.background = "";
-            this.style.color = "var(--SmartThemeBodyColor)";
+            this.style.color = this.dataset.action === "lastooc" ? "var(--SmartThemeQuoteColor)" : "var(--SmartThemeBodyColor)";
         });
     });
 
