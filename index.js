@@ -7,19 +7,24 @@ const defaultSettings = {
     twistPrompt: "You are a genius narrative stylist. Introduce a dramatic and unexpected plot twist that enriches the story."
 };
 
-// Загружаем настройки
 if (!extension_settings[extensionName]) {
     extension_settings[extensionName] = defaultSettings;
 }
 
-// Для перегенерации запоминаем тип
 let lastType = null;
+let isGenerating = false;  // <-- Флаг чтобы не запускать дважды
+
+// ========== ЗАКРЫТЬ POPUP ==========
+function closePopup() {
+    const popup = document.getElementById("fawn-popup");
+    if (popup) {
+        popup.remove();
+    }
+}
 
 // ========== ОКОШКО ПРЕВЬЮ ==========
 function showPreviewPopup(text, type) {
-    // Удаляем старое если есть
-    const old = document.getElementById("fawn-popup");
-    if (old) old.remove();
+    closePopup();  // Сначала закрываем старое
 
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
@@ -41,28 +46,41 @@ function showPreviewPopup(text, type) {
     document.body.appendChild(popup);
 
     // Вставить
-    document.getElementById("fawn-ok").onclick = () => {
+    document.getElementById("fawn-ok").addEventListener("click", () => {
         const finalText = document.getElementById("fawn-preview-text").value;
         const textarea = document.getElementById('send_textarea');
         textarea.value = finalText;
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
-        popup.remove();
+        closePopup();
         toastr.success("Вставлено! 🩰");
-    };
+    });
 
     // Перегенерировать
-    document.getElementById("fawn-redo").onclick = () => {
-        popup.remove();
-        drivePlot(lastType);
-    };
+    document.getElementById("fawn-redo").addEventListener("click", () => {
+        closePopup();
+        setTimeout(() => drivePlot(lastType), 100);  // <-- Маленькая задержка!
+    });
 
     // Отмена
-    document.getElementById("fawn-no").onclick = () => popup.remove();
-    document.getElementById("fawn-popup-bg").onclick = () => popup.remove();
+    document.getElementById("fawn-no").addEventListener("click", () => {
+        closePopup();
+    });
+
+    // Клик по фону
+    document.getElementById("fawn-popup-bg").addEventListener("click", () => {
+        closePopup();
+    });
 }
 
 // ========== ГЛАВНАЯ ФУНКЦИЯ ==========
 async function drivePlot(type) {
+    // Если уже генерируем — выходим
+    if (isGenerating) {
+        console.log("Fawn: Уже генерирую, подожди!");
+        return;
+    }
+
+    isGenerating = true;
     lastType = type;
 
     const button = document.getElementById("fawn-plot-btn");
@@ -86,38 +104,55 @@ async function drivePlot(type) {
             ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
-        const finalPrompt = `${instruction}\n\nRecent story:\n${chatHistory}\n\nWrite a brief, elegant OOC direction for the next scene. No meta-commentary, no thinking, just the direction:`;
+        const finalPrompt = `${instruction}
 
+Recent story:
+${chatHistory}
+
+Write ONLY the OOC direction itself. 2-3 sentences maximum.
+DO NOT use <think> tags. DO NOT explain your reasoning. Just write the scene direction.`;
+
+        console.log("Fawn: Отправляю запрос...");
         const response = await generateQuietPrompt(finalPrompt);
+        console.log("Fawn: Получил ответ:", response);
 
         if (response) {
             // Чистим от <think> тегов
-            let clean = response.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-            if (!clean) clean = response;
+            let clean = response
+                .replace(/<think>[\s\S]*?<\/think>/gi, '')
+                .replace(/<think>[\s\S]*/gi, '')
+                .replace(/<\/think>/gi, '')
+                .trim();
 
-            // Показываем превью вместо прямой вставки!
+            if (!clean) {
+                toastr.warning("Попробуй ещё раз! 🔄");
+                return;
+            }
+
             showPreviewPopup(clean, type);
         }
     } catch (error) {
         console.error("Fawn Error:", error);
-        toastr.error("Ой, что-то пошло не так: " + error.message);
+        toastr.error("Ошибка: " + error.message);
     } finally {
+        // ВСЕГДА сбрасываем состояние!
+        isGenerating = false;
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
+        console.log("Fawn: Готов к следующему запросу!");
     }
 }
 
-// ========== МЕНЮ — БЕЗ ИЗМЕНЕНИЙ ==========
+// ========== КНОПКА ==========
 function addFawnMenu() {
-    if (document.getElementById("fawn-plot-btn")) return;
+    if (document.getElementById("fawn-plot-btn")) return true;
 
     const container = document.getElementById("leftSendForm")
                    || document.getElementById("form_sheld")
                    || document.querySelector("#send_form");
 
     if (!container) {
-        console.log("Fawn: Жду интерфейс...");
         return false;
     }
 
@@ -157,7 +192,8 @@ function addFawnMenu() {
 
     btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        menu.style.display = menu.style.display === "none" ? "block" : "none";
+        const isVisible = menu.style.display === "block";
+        menu.style.display = isVisible ? "none" : "block";
     });
 
     menu.querySelectorAll(".fawn-option").forEach(opt => {
@@ -183,7 +219,7 @@ function addFawnMenu() {
     return true;
 }
 
-// ========== ЗАПУСК — БЕЗ ИЗМЕНЕНИЙ ==========
+// ========== ЗАПУСК ==========
 jQuery(() => {
     const tryAdd = setInterval(() => {
         if (addFawnMenu()) {
