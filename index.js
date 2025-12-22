@@ -41,50 +41,56 @@ async function drivePlot(type) {
     }
 }
 
-// Функция инициализации
-function initFawn() {
-    // Проверяем, нет ли уже этой кнопки (чтобы не дублировать)
-    if ($("#fawn-plot-driver-menu").length) return;
+// Умная функция вставки кнопки
+function injectFawnButton() {
+    // Если кнопка уже есть, ничего не делаем
+    if (document.getElementById('fawn-plot-driver-menu')) return;
 
-    const menuHtml = `
-        <div id="fawn-plot-driver-menu" class="list_item" title="Fawn's Plot Driver" style="position: relative;">
-            <i class="fa-solid fa-star" style="color:#ffb7c5;"></i>
-            <div class="list_item_text">Fawn's Plot Driver</div>
-            <div id="plot-driver-options" style="display:none; position:absolute; left: 100%; top: 0; background:rgba(20,20,20,0.95); border:1px solid #ffb7c5; border-radius:12px; padding:8px; z-index:9999; min-width:180px; box-shadow: 0 4px 15px rgba(255,183,197,0.3);">
-                <div class="plot-item" data-type="timeskip" style="padding:10px; cursor:pointer; color:#fff;">🩰 Gentle Time Skip</div>
-                <div class="plot-item" data-type="twist" style="padding:10px; cursor:pointer; color:#fff;">🥀 Dramatic Twist</div>
+    // Ищем список расширений (тот самый с твоего скрина)
+    const extensionsMenu = document.getElementById('extensionsMenu');
+
+    if (extensionsMenu) {
+        const menuHtml = `
+            <div id="fawn-plot-driver-menu" class="list_item" title="Fawn's Plot Driver" style="position: relative;">
+                <i class="fa-solid fa-star" style="color:#ffb7c5;"></i>
+                <div class="list_item_text">Fawn's Plot Driver</div>
+                <div id="plot-driver-options" style="display:none; position:absolute; left: 100%; top: 0; background:rgba(30,30,30,0.98); border:1px solid #ffb7c5; border-radius:12px; padding:8px; z-index:9999; min-width:180px; box-shadow: 0 4px 15px rgba(255,183,197,0.4);">
+                    <div class="plot-item-fawn" data-type="timeskip" style="padding:10px; cursor:pointer; color:#fff; border-radius:8px;">🩰 Gentle Time Skip</div>
+                    <div class="plot-item-fawn" data-type="twist" style="padding:10px; cursor:pointer; color:#fff; border-radius:8px;">🥀 Dramatic Twist</div>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+        
+        extensionsMenu.insertAdjacentHTML('beforeend', menuHtml);
+        console.log("🎀 Fawn: Menu item injected!");
 
-    // Пытаемся добавить в разные возможные места меню
-    const target = $("#extensionsMenu, #extensions_menu, .extensionsMenu");
-    
-    if (target.length) {
-        target.append(menuHtml);
-        console.log("Fawn's Plot Driver: Menu injected successfully!");
+        // Навешиваем события сразу после вставки
+        document.getElementById('fawn-plot-driver-menu').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const options = document.getElementById('plot-driver-options');
+            options.style.display = options.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.querySelectorAll('.plot-item-fawn').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                drivePlot(item.getAttribute('data-type'));
+                document.getElementById('plot-driver-options').style.display = 'none';
+            });
+        });
+
+        document.addEventListener('click', () => {
+            const options = document.getElementById('plot-driver-options');
+            if (options) options.style.display = 'none';
+        });
+
     } else {
-        console.log("Fawn's Plot Driver: Menu target not found, retrying...");
-        setTimeout(initFawn, 1000); // Пробуем еще раз через секунду
+        // Если меню еще не прогрузилось, пробуем снова через полсекунды
+        setTimeout(injectFawnButton, 500);
     }
 }
 
-// Запуск при загрузке
-jQuery(function () {
-    setTimeout(initFawn, 500); // Небольшая задержка для уверенности
-
-    $(document).on('click', '#fawn-plot-driver-menu', function(e) {
-        e.stopPropagation();
-        $("#plot-driver-options").toggle();
-    });
-
-    $(document).on('click', '.plot-item', function(e) {
-        e.stopPropagation();
-        drivePlot($(this).attr('data-type'));
-        $("#plot-driver-options").hide();
-    });
-
-    $(document).on('click', function() {
-        $("#plot-driver-options").hide();
-    });
+// Запуск при загрузке страницы
+$(document).ready(() => {
+    injectFawnButton();
 });
