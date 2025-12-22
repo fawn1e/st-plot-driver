@@ -9,7 +9,7 @@
     border-radius: 6px;
     margin: 0 4px;
     transition: all 0.3s ease;
-    color: var(--text-color); /* Цвет как у остальных кнопок Таверны */
+    color: var(--text-color);
     opacity: 0.8;
 }
 
@@ -17,10 +17,6 @@
     opacity: 1;
     color: var(--pink-color, #ffb7c5);
     filter: drop-shadow(0 0 5px var(--pink-color, #ffb7c5));
-}
-
-#fawn-plot-btn i {
-    font-size: 13px;
 }
 
 /* ========== АНИМАЦИЯ ПИШУЩЕГО ПЕРА ========== */
@@ -39,7 +35,6 @@
     }
 }
 
-/* Применяется к иконке во время генерации */
 .fa-pen-nib.fa-spin, .fawn-writing {
     animation: writing-glow 0.7s infinite ease-in-out !important;
 }
@@ -49,15 +44,14 @@
     display: none;
     position: fixed;
     z-index: 10000;
-    background: var(--black75); /* Стандартный полупрозрачный фон */
+    background: var(--black75);
     border: 1px solid var(--pink-color, #ffb7c5);
-    backdrop-filter: blur(10px); /* Усиленное размытие */
+    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 5px;
     min-width: 180px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    color: var(--text-color);
 }
 
 .fawn-option {
@@ -69,42 +63,69 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--text-color);
 }
 
 .fawn-option:hover {
     background: var(--pink-color, #ffb7c5);
-    color: #000 !important; /* Черный текст на розовом для читаемости */
+    color: #000 !important;
     padding-left: 15px;
 }
 
-/* ========== ПОП-АПЫ И ТЕКСТ (МАШИННЫЙ ШРИФТ) ========== */
-.fawn-popup-content {
+/* ========== ИСПРАВЛЕННЫЕ ПОП-АПЫ (НАСТРОЙКИ) ========== */
+/* Используем универсальный селектор, чтобы не ломать верстку JS */
+.fawn-popup-content, 
+#fawn-popup > div:not(#fawn-popup-bg) {
     background: var(--black75) !important;
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
     border: 1px solid var(--pink-color, #ffb7c5) !important;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    border-radius: 15px !important;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7) !important;
+    color: var(--text-color) !important;
 }
 
-/* Машинный шрифт для областей ввода и OOC текста */
+#fawn-popup-bg {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(3px);
+}
+
+/* ========== МАШИННЫЙ ТЕКСТ (MONOSPACE) ========== */
 .fawn-popup-textarea, 
 #fawn-ooc-text, 
 #fawn-manual-text, 
-#fawn-manual-ooc {
-    background: rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid var(--SmartThemeBorderColor) !important;
-    color: var(--pink-color, #ffb7c5) !important; /* Текст в консоли розовый */
+#fawn-manual-ooc,
+#fawn-set-timeskip,
+#fawn-set-twist {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid var(--pink-color, #ffb7c5) !important;
+    color: var(--pink-color, #ffb7c5) !important;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
     font-size: 13px !important;
-    padding: 10px !important;
+    padding: 12px !important;
     border-radius: 8px !important;
+    outline: none;
 }
 
-/* Кастомный скроллбар для текстовых полей */
-.fawn-popup-textarea::-webkit-scrollbar {
-    width: 5px;
+/* Заголовки в настройках */
+.fawn-popup-title {
+    color: var(--pink-color, #ffb7c5) !important;
+    text-shadow: 0 0 10px rgba(255, 183, 197, 0.3);
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
 }
-.fawn-popup-textarea::-webkit-scrollbar-thumb {
-    background: var(--pink-color, #ffb7c5);
-    border-radius: 10px;
+
+/* Слайдер и кнопки */
+input[type=range]#fawn-set-msgcount {
+    accent-color: var(--pink-color, #ffb7c5);
+}
+
+.menu_button {
+    transition: 0.3s;
+}
+
+.menu_button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 10px var(--pink-color, #ffb7c5);
 }
