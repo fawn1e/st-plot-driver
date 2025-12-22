@@ -1,4 +1,4 @@
-console.log("🩰 Fawn Plot Driver v2.0: Перезагрузка с фиксами...");
+console.log("🩰 Fawn Plot Driver v2.1: Фикс кнопок...");
 
 import { extension_settings, getContext } from "../../../extensions.js";
 import { setExtensionPrompt, extension_prompt_types, extension_prompt_roles } from "../../../../script.js";
@@ -17,7 +17,7 @@ if (!extension_settings[extensionName]) {
 
 let isProcessing = false;
 let processingTimeout = null;
-let lastPromptType = null;
+let controls = null;
 
 // ========== УТИЛИТЫ ==========
 function saveSettings() {
@@ -45,13 +45,15 @@ function debounce(func, wait) {
     };
 }
 
+function findChatContainer() {
+    return document.querySelector('#chat-container, .mes-container, .chat-container, [data-testid="message"], .messages, main, body') || document.body;
+}
+
 // ========== РАБОТА С ПРОМПТАМИ ==========
 function addOOCPrompt(promptText, type) {
     if (isProcessing) return;
     
     isProcessing = true;
-    lastPromptType = type;
-    
     const fullPrompt = `[OOC INSTRUCTION FROM PLOT DRIVER: ${type.toUpperCase()}] ${promptText} [END OOC - incorporate this COMPLETELY into your next response. Do NOT cut off mid-sentence.]`;
     
     setExtensionPrompt(
@@ -65,139 +67,102 @@ function addOOCPrompt(promptText, type) {
         extension_prompt_roles.SYSTEM
     );
     
-    // Ждем завершения генерации
     processingTimeout = setTimeout(() => {
         clearOOCPrompt();
-        resetButtons();
-    }, 5000); // Максимум 5 сек ожидания
+    }, 8000);
 }
 
 function clearOOCPrompt() {
-    setExtensionPrompt(
-        'fawn-plot-driver-v2',
-        '',
-        extension_prompt_types.IN_CHAT,
-        1,
-        false,
-        true,
-        null,
-        extension_prompt_roles.SYSTEM
-    );
+    setExtensionPrompt('fawn-plot-driver-v2', '', extension_prompt_types.IN_CHAT, 1, false, true, null, extension_prompt_roles.SYSTEM);
     isProcessing = false;
-    lastPromptType = null;
     if (processingTimeout) {
         clearTimeout(processingTimeout);
         processingTimeout = null;
     }
+    resetButtons();
 }
 
-// Сброс состояния кнопок
-function resetButtons() {
-    document.querySelectorAll('.fawn-btn').forEach(btn => {
-        btn.disabled = false;
-        btn.classList.remove('processing');
-        btn.textContent = btn.dataset.originalText || btn.textContent;
-    });
-}
-
-// ========== UI ==========
+// ========== КНОПКИ ==========
 function createButton(icon, text, action, tooltip) {
     const btn = document.createElement('div');
-    btn.className = 'fawn-btn text-sm px-2 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white cursor-pointer select-none flex items-center gap-1 whitespace-nowrap';
-    btn.innerHTML = `${icon} ${text}`;
+    btn.className = 'fawn-btn text-xs px-2 py-1 rounded bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white cursor-pointer select-none flex items-center gap-1 shadow-lg border border-white/20 hover:shadow-xl transition-all duration-200 min-w-[70px] justify-center';
+    btn.innerHTML = `<span class="icon">${icon}</span> <span class="text">${text}</span>`;
     btn.title = tooltip;
-    btn.dataset.originalText = text;
     
     const debouncedAction = debounce((e) => {
         e.stopPropagation();
         if (isProcessing) return;
         
-        btn.disabled = true;
         btn.classList.add('processing');
-        btn.innerHTML = '⏳';
+        const iconEl = btn.querySelector('.icon');
+        const textEl = btn.querySelector('.text');
+        iconEl.textContent = '⏳';
+        textEl.textContent = '';
         
         action();
-    }, 300);
+    }, 200);
     
     btn.addEventListener('click', debouncedAction);
     return btn;
 }
 
+function resetButtons() {
+    document.querySelectorAll('.fawn-btn').forEach(btn => {
+        btn.classList.remove('processing');
+        btn.querySelector('.icon').textContent = btn.dataset.icon || '⚙️';
+        btn.querySelector('.text').textContent = btn.dataset.text || 'Settings';
+        btn.style.pointerEvents = 'auto';
+    });
+}
+
 function showControls() {
-    // Удаляем старые контролы
-    document.querySelectorAll('.fawn-controls, .fawn-popup').forEach(el => el.remove());
+    // Удаляем старые
+    document.querySelectorAll('.fawn-controls').forEach(el => el.remove());
     
-    const container = document.querySelector('#chat-container, .mes-container, [data-testid="message"]')?.parentElement;
+    const container = findChatContainer();
     if (!container) return;
     
-    const controls = document.createElement('div');
-    controls.className = 'fawn-controls flex gap-1 p-2 bg-gray-800/50 rounded-lg border border-gray-600 mb-2';
+    controls = document.createElement('div');
+    controls.id = 'fawn-controls';
+    controls.className = 'fawn-controls fixed bottom-6 right-6 flex flex-col gap-2 z-50 pointer-events-auto';
     
     const s = extension_settings[extensionName];
     
-    controls.appendChild(createButton(
-        '⏭️',
-        'Timeskip',
-        () => addOOCPrompt(s.timeskipPrompt, 'timeskip'),
-        'Создать плавный временной скачок (OOC)'
-    ));
+    controls.appendChild(createButton('⏭️', 'Timeskip', () => addOOCPrompt(s.timeskipPrompt, 'timeskip'), 'Временной скачок'));
+    controls.appendChild(createButton('🔄', 'Twist', () => addOOCPrompt(s.twistPrompt, 'twist'), 'Поворот сюжета'));
+    controls.appendChild(createButton('⚙️', 'Настройки', () => showSettingsPopup(), 'Настройки'));
     
-    controls.appendChild(createButton(
-        '🔄',
-        'Twist',
-        () => addOOCPrompt(s.twistPrompt, 'twist'),
-        'Добавить неожиданный поворот сюжета (OOC)'
-    ));
+    document.body.appendChild(controls);
     
-    controls.appendChild(createButton(
-        '⚙️',
-        'Настройки',
-        () => showSettingsPopup(),
-        'Настройки Fawn'
-    ));
-    
-    container.insertBefore(controls, container.firstChild);
-    
-    // Подписка на события чата для автоочистки
-    const handler = (event) => {
-        if (event.detail?.type === event_types.CHAT_COMPLETED || event.detail?.type === event_types.STOP_GENERATION) {
-            setTimeout(clearOOCPrompt, 500);
-        }
-    };
-    
+    // Автоочистка по событиям
+    const handler = () => setTimeout(clearOOCPrompt, 1000);
     eventSource.on(event_types.CHAT_COMPLETED, handler);
     eventSource.on(event_types.STOP_GENERATION, handler);
-    
-    // Очистка при смене чата
-    const chatObserver = new MutationObserver(() => {
-        if (!document.querySelector('.mes')) {
-            clearOOCPrompt();
-        }
-    });
-    chatObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 // ========== НАСТРОЙКИ ==========
 function showSettingsPopup() {
     const popup = document.createElement('div');
-    popup.className = 'fawn-popup fixed top-4 right-4 bg-black/90 backdrop-blur-lg border border-gray-700 rounded-xl p-6 w-96 max-h-96 overflow-auto shadow-2xl z-50';
+    popup.className = 'fawn-popup fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-4';
     popup.innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-white">🩰 Fawn Plot Driver v2.0</h3>
-            <button id="fawn-close" class="text-gray-400 hover:text-white text-xl">&times;</button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Timeskip промпт</label>
-                <textarea id="timeskip-prompt" rows="3" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">${extension_settings[extensionName].timeskipPrompt}</textarea>
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600 rounded-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-700">
+                <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">🩰 Fawn v2.1</h3>
+                <button id="fawn-close" class="text-2xl hover:text-white transition-colors">&times;</button>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Twist промпт</label>
-                <textarea id="twist-prompt" rows="3" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">${extension_settings[extensionName].twistPrompt}</textarea>
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button id="fawn-save" class="flex-1 bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-white font-medium transition-all">💾 Сохранить</button>
-                <button id="fawn-default" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-white font-medium transition-all">По умолчанию</button>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-200 mb-3">⏭️ Timeskip промпт</label>
+                    <textarea id="timeskip-prompt" rows="4" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/50 resize-vertical transition-all">${extension_settings[extensionName].timeskipPrompt}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-200 mb-3">🔄 Twist промпт</label>
+                    <textarea id="twist-prompt" rows="4" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/50 resize-vertical transition-all">${extension_settings[extensionName].twistPrompt}</textarea>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button id="fawn-save" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all">💾 Сохранить</button>
+                    <button id="fawn-default" class="px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all">🔄 По умолчанию</button>
+                </div>
             </div>
         </div>
     `;
@@ -210,7 +175,7 @@ function showSettingsPopup() {
         extension_settings[extensionName].twistPrompt = document.getElementById('twist-prompt').value;
         saveSettings();
         popup.remove();
-        showControls(); // Перерисовка кнопок
+        showControls();
     };
     document.getElementById('fawn-default').onclick = () => {
         extension_settings[extensionName] = { ...defaultSettings };
@@ -218,28 +183,31 @@ function showSettingsPopup() {
         document.getElementById('timeskip-prompt').value = defaultSettings.timeskipPrompt;
         document.getElementById('twist-prompt').value = defaultSettings.twistPrompt;
     };
-    
-    // Закрытие по клику вне
-    popup.onclick = (e) => {
-        if (e.target === popup) popup.remove();
-    };
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 loadSettings();
+showControls(); // Показываем сразу
 
+// Observer для перерисовки
 const observer = new MutationObserver(() => {
-    if (document.querySelector('#chat-container, .mes-container')) {
-        showControls();
+    if (!document.querySelector('#fawn-controls')) {
+        setTimeout(showControls, 500);
+    }
+});
+observer.observe(document.body, { childList: true, subtree: true });
+
+// Горячие клавиши
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === 't') {
+            e.preventDefault();
+            addOOCPrompt(extension_settings[extensionName].timeskipPrompt, 'timeskip');
+        } else if (e.key === 'y') {
+            e.preventDefault();
+            addOOCPrompt(extension_settings[extensionName].twistPrompt, 'twist');
+        }
     }
 });
 
-observer.observe(document.body, { childList: true, subtree: true });
-
-// Глобальная очистка при смене чата
-window.addEventListener('focus', resetButtons);
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) resetButtons();
-});
-
-console.log("🩰 Fawn v2.0 готов! Кнопки: ⏭️ Timeskip, 🔄 Twist, ⚙️ Настройки");
+console.log("🩰 Fawn v2.1 готов! Кнопки в правом нижнем углу. Горячие клавиши: Ctrl+T (timeskip), Ctrl+Y (twist)");
