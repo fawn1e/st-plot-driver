@@ -245,6 +245,14 @@ function showManualInputPopup(type) {
 async function drivePlot(type) {
     console.log("🩰 Fawn: === НАЧАЛО ===");
     console.log("🩰 Fawn: Тип:", type);
+    
+    // Проверяем, доступна ли функция generateQuietPrompt
+    if (typeof generateQuietPrompt !== 'function') {
+        console.error("🩰 Fawn: generateQuietPrompt не найдена!");
+        toastr.error("Ошибка: функция генерации не доступна");
+        showManualInputPopup(type);
+        return;
+    }
 
     lastType = type;
 
@@ -289,15 +297,24 @@ async function drivePlot(type) {
 
         let text = "";
 
-        // Извлекаем текст из ответа
-        if (typeof response === "string" && response.length > 0) {
+        // Улучшенная обработка разных форматов ответа
+        if (typeof response === "string") {
             text = response;
             console.log("🩰 Fawn: Взял как строку");
         } else if (response && typeof response === "object") {
-            // Формат Chat Completion API
-            if (response.choices && response.choices[0] && response.choices[0].message && response.choices[0].message.content) {
-                text = response.choices[0].message.content;
-                console.log("🩰 Fawn: Взял из choices[0].message.content");
+            // Попробуем разные возможные пути к тексту
+            if (response.choices && Array.isArray(response.choices) && response.choices[0]) {
+                const choice = response.choices[0];
+                if (choice.message && choice.message.content) {
+                    text = choice.message.content;
+                    console.log("🩰 Fawn: Взял из choices[0].message.content");
+                } else if (choice.text) {
+                    text = choice.text;
+                    console.log("🩰 Fawn: Взял из choices[0].text");
+                } else if (choice.content) {
+                    text = choice.content;
+                    console.log("🩰 Fawn: Взял из choices[0].content");
+                }
             } else if (response.content) {
                 text = response.content;
                 console.log("🩰 Fawn: Взял из response.content");
@@ -310,26 +327,55 @@ async function drivePlot(type) {
             } else if (response.mes) {
                 text = response.mes;
                 console.log("🩰 Fawn: Взял из response.mes");
+            } else if (response.response) {
+                // Рекурсивный поиск в response.response
+                const innerResponse = response.response;
+                if (typeof innerResponse === "string") {
+                    text = innerResponse;
+                } else if (innerResponse && typeof innerResponse === "object") {
+                    if (innerResponse.content) {
+                        text = innerResponse.content;
+                    } else if (innerResponse.text) {
+                        text = innerResponse.text;
+                    } else if (innerResponse.mes) {
+                        text = innerResponse.mes;
+                    }
+                }
+                console.log("🩰 Fawn: Взял из response.response");
+            }
+            
+            // Если ничего не нашли, попробуем преобразовать весь объект в строку
+            if (!text) {
+                try {
+                    text = JSON.stringify(response);
+                } catch (e) {
+                    console.log("🩰 Fawn: Не удалось преобразовать объект в строку");
+                }
             }
         }
 
-        // Чистим от think тегов
+        // Чистим от think тегов и лишних пробелов
         if (text) {
             text = text
                 .replace(/<think>[\s\S]*?<\/think>/gi, '')
                 .replace(/<think>[\s\S]*/gi, '')
                 .replace(/<\/think>/gi, '')
                 .trim();
+            
+            // Также удаляем возможные обертки в квадратные скобки
+            text = text.replace(/^\[OOC[^\]]*\]\s*/i, '').replace(/\[END OOC.*\]/gi, '');
         }
 
         console.log("🩰 Fawn: Финальный текст:", text);
         console.log("🩰 Fawn: Длина:", text ? text.length : 0);
 
-        if (text && text.length > 5) {
+        // Более либеральная проверка - может быть короткий но валидный текст
+        if (text && text.length > 2 && !text.includes("undefined") && !text.includes("null")) {
             console.log("🩰 Fawn: Показываю превью!");
             showPreviewPopup(text, type);
         } else {
-            console.log("🩰 Fawn: Текст пустой, ручной ввод");
+            console.log("🩰 Fawn: Текст пустой или некорректный, ручной ввод");
+            console.log("🩰 Fawn: text =", text);
             showManualInputPopup(type);
         }
 
