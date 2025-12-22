@@ -1,4 +1,4 @@
-/* Fawn Plot Driver - SAFE Design */
+/* Fawn Plot Driver - Clean Blur Only */
 #fawn-plot-btn {
     position: relative;
     width: 48px;
@@ -11,7 +11,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     margin: 4px;
     z-index: 100;
@@ -20,8 +20,7 @@
 #fawn-plot-btn:hover {
     background: rgba(var(--SmartThemeBlurMainColorRGB), 0.6);
     border-color: var(--SmartThemeQuoteColor);
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 16px 48px rgba(var(--SmartThemeQuoteColorRGB), 0.3);
+    transform: translateY(-2px);
 }
 
 #fawn-plot-btn i {
@@ -31,12 +30,6 @@
 
 #fawn-plot-btn i.fa-spin {
     color: var(--SmartThemeAccentColor);
-    animation: fawnSpin 1s linear infinite;
-}
-
-@keyframes fawnSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 #fawn-menu {
@@ -50,12 +43,6 @@
     min-width: 220px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     display: none;
-    animation: fawnMenuSlideIn 0.3s ease;
-}
-
-@keyframes fawnMenuSlideIn {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
 }
 
 .fawn-option {
@@ -66,7 +53,7 @@
     font-size: 14px;
     font-weight: 500;
     color: var(--SmartThemeBodyColor);
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     border: 1px solid transparent;
 }
 
@@ -74,7 +61,6 @@
     background: rgba(var(--SmartThemeQuoteColorRGB), 0.15);
     border-color: var(--SmartThemeQuoteColor);
     color: var(--SmartThemeQuoteColor);
-    transform: translateX(6px);
 }
 
 #fawn-last-ooc-option {
@@ -84,6 +70,7 @@
     padding-left: 20px;
 }
 
+/* Только блюр-фон для попапов */
 #fawn-popup-bg {
     position: absolute;
     top: 0;
@@ -91,16 +78,10 @@
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
-    animation: fawnFadeIn 0.3s ease;
+    backdrop-filter: blur(12px);
 }
 
-@keyframes fawnFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Только для попапов Fawn - НЕ ЛОМАЕТ остальное */
+/* Попапы без анимаций */
 #fawn-popup > div:not(#fawn-popup-bg),
 .fawn-popup-content {
     position: fixed;
@@ -115,12 +96,7 @@
     max-width: 90vw;
     max-height: 90vh;
     box-shadow: 0 25px 80px rgba(0,0,0,0.6);
-    animation: fawnPopupRise 0.4s ease;
-}
-
-@keyframes fawnPopupRise {
-    0% { opacity: 0; transform: translate(-50%, -50%) translateY(50px); }
-    100% { opacity: 1; transform: translate(-50%, -50%); }
+    overflow-y: auto;
 }
 
 .fawn-popup-title {
@@ -128,10 +104,7 @@
     font-weight: 700;
     text-align: center;
     margin-bottom: 24px;
-    background: linear-gradient(135deg, var(--SmartThemeQuoteColor), var(--SmartThemeAccentColor));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--SmartThemeQuoteColor);
 }
 
 .fawn-popup-textarea,
@@ -148,6 +121,7 @@
     color: var(--SmartThemeBodyColor);
     font-size: 15px;
     resize: vertical;
+    box-sizing: border-box;
 }
 
 .fawn-popup-textarea:focus,
@@ -165,7 +139,16 @@
     color: var(--SmartThemeQuoteColor);
 }
 
-/* Кнопки только для Fawn */
+.fawn-popup-buttons,
+div[style*="display:flex; gap:10px"] {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 24px 0 12px 0;
+}
+
+/* Кнопки без лишнего */
 [id^="fawn-"] .menu_button,
 .fawn-popup-buttons .menu_button {
     padding: 14px 24px;
@@ -174,16 +157,17 @@
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
     background: rgba(var(--SmartThemeBlurMainColorRGB), 0.6);
     color: var(--SmartThemeBodyColor);
     border: 2px solid transparent;
+    transition: all 0.2s ease;
 }
 
 [id^="fawn-"] .menu_button:hover,
 .fawn-popup-buttons .menu_button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    background: rgba(var(--SmartThemeQuoteColorRGB), 0.2);
+    border-color: var(--SmartThemeQuoteColor);
+    color: var(--SmartThemeQuoteColor);
 }
 
 #fawn-set-msgcount {
