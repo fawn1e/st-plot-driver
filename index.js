@@ -18,7 +18,7 @@ if (!extension_settings[extensionName]) {
 
 let lastType = null;
 let isGenerating = false;
-let lastGeneratedOOC = null; // 🩰 СОХРАНЯЕМ ПОСЛЕДНИЙ OOC
+let lastGeneratedOOC = null;
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
 function saveSettings() {
@@ -57,7 +57,6 @@ ${text}
         extension_prompt_roles.SYSTEM
     );
 
-    // 🩰 После применения очищаем сохранённый OOC
     lastGeneratedOOC = null;
     updateMenuState();
 }
@@ -80,11 +79,7 @@ function clearPlotPrompt() {
 function updateMenuState() {
     const lastOocOption = document.getElementById("fawn-last-ooc-option");
     if (lastOocOption) {
-        if (lastGeneratedOOC) {
-            lastOocOption.style.display = "block";
-        } else {
-            lastOocOption.style.display = "none";
-        }
+        lastOocOption.style.display = lastGeneratedOOC ? "block" : "none";
     }
 }
 
@@ -248,9 +243,9 @@ async function drivePlot(type) {
     isGenerating = true;
     lastType = type;
 
-    const button = document.getElementById("fawn-plot-btn");
-    if (button) {
-        button.innerHTML = '<i class="fa-solid fa-pen-nib fa-spin"></i>';
+    const icon = document.querySelector("#fawn-plot-btn i");
+    if (icon) {
+        icon.className = "fa-solid fa-pen-nib fa-spin";
     }
 
     try {
@@ -293,7 +288,6 @@ OOC:`;
         }
 
         if (oocText?.length > 5) {
-            // 🩰 СОХРАНЯЕМ OOC НА СЛУЧАЙ МИСКЛИКА
             lastGeneratedOOC = { text: oocText, type: type };
             updateMenuState();
             showOOCPreview(oocText, type);
@@ -308,8 +302,9 @@ OOC:`;
         showManualOOC(type);
     } finally {
         isGenerating = false;
-        if (button) {
-            button.innerHTML = '<i class="fa-solid fa-star"></i>';
+        const icon = document.querySelector("#fawn-plot-btn i");
+        if (icon) {
+            icon.className = "fa-solid fa-star";
         }
     }
 }
@@ -345,7 +340,6 @@ function extractOOC(response) {
         .replace(/^\s*\n/gm, '')
         .trim();
 
-    // 🥀 УМНАЯ ОБРЕЗКА: если текст слишком длинный, обрезаем по последней точке/скобке
     if (text && text.length > 500) {
         const cut = text.substring(0, 500);
         const lastEnd = Math.max(
@@ -363,9 +357,9 @@ function extractOOC(response) {
     return text;
 }
 
-// ========== УПРОЩЕННАЯ КНОПКА (ПОСТОЯННАЯ) ==========
+// ========== ИСПРАВЛЕННАЯ КНОПКА И МЕНЮ ==========
 function addFawnMenu() {
-    if (document.getElementById("fawn-plot-btn")) return true;
+    if (document.getElementById("fawn-plot-container")) return true;
 
     const container = document.getElementById("leftSendForm") ||
                      document.getElementById("form_sheld") ||
@@ -373,15 +367,22 @@ function addFawnMenu() {
 
     if (!container) return false;
 
+    // Создаем контейнер для кнопки и меню
+    const plotContainer = document.createElement("div");
+    plotContainer.id = "fawn-plot-container";
+    plotContainer.style.cssText = "position:relative; display:inline-block;";
+
+    // Кнопка (только иконка)
     const btn = document.createElement("div");
     btn.id = "fawn-plot-btn";
     btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px; position:relative; z-index:1000;";
+    btn.style.cssText = "cursor:pointer; padding:10px; color:var(--SmartThemeQuoteColor); font-size:18px;";
 
+    // Меню (отдельный элемент)
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
-    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:1001; min-width:120px;";
+    menu.style.cssText = "display:none; position:absolute; bottom:40px; left:0; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:4px; z-index:1001; min-width:120px; box-shadow:0 4px 12px rgba(0,0,0,0.2);";
     menu.innerHTML = `
         <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🩰 Time Skip</div>
         <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor);">🥀 Plot Twist</div>
@@ -390,40 +391,29 @@ function addFawnMenu() {
         <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.7;">⚙️ Настройки</div>
     `;
 
-    btn.appendChild(menu);
-    container.insertBefore(btn, container.firstChild);
+    plotContainer.appendChild(btn);
+    plotContainer.appendChild(menu);
+    container.insertBefore(plotContainer, container.firstChild);
 
-    let menuTimeout = null;
-
+    // Обработчик клика по кнопке
     btn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
         closePopup();
         updateMenuState();
         
-        // Тoggle меню
-        if (menu.style.display === "block") {
-            menu.style.display = "none";
-            if (menuTimeout) clearTimeout(menuTimeout);
-        } else {
-            menu.style.display = "block";
-            
-            // Автозакрытие через 10 секунд, если не взаимодействуют
-            if (menuTimeout) clearTimeout(menuTimeout);
-            menuTimeout = setTimeout(() => {
-                menu.style.display = "none";
-            }, 10000);
-        }
+        const isMenuVisible = menu.style.display === "block";
+        menu.style.display = isMenuVisible ? "none" : "block";
     });
 
+    // Обработчики для пунктов меню
     menu.querySelectorAll(".fawn-option").forEach(opt => {
         opt.addEventListener("click", function(e) {
             e.preventDefault();
             e.stopPropagation();
             menu.style.display = "none";
-            if (menuTimeout) clearTimeout(menuTimeout);
-            
             const action = this.dataset.action;
+            
             if (action === "settings") {
                 showSettingsPopup();
             } else if (action === "lastooc") {
@@ -443,11 +433,10 @@ function addFawnMenu() {
         });
     });
 
-    // Закрытие меню при клике вне его
+    // Закрытие меню при клике вне
     document.addEventListener("click", function(e) {
-        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        if (!plotContainer.contains(e.target)) {
             menu.style.display = "none";
-            if (menuTimeout) clearTimeout(menuTimeout);
         }
     });
 
@@ -462,13 +451,13 @@ eventSource.on(event_types.MESSAGE_SWIPED, clearPlotPrompt);
 jQuery(() => {
     loadSettings();
     
-    // Пытаемся создать кнопку сразу
+    // Создаем кнопку при загрузке
     addFawnMenu();
     
-    // Если контейнер ещё не готов, ждём 2 секунды и пробуем снова
+    // Запасной таймер на случай, если контейнер ещё не готов
     setTimeout(() => {
-        if (!document.getElementById("fawn-plot-btn")) {
+        if (!document.getElementById("fawn-plot-container")) {
             addFawnMenu();
         }
-    }, 2000);
+    }, 1000);
 });
