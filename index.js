@@ -246,6 +246,7 @@ function showManualInputPopup(type) {
 }
 
 // ========== MAIN FUNCTION ==========
+// ========== MAIN FUNCTION ==========
 async function drivePlot(type) {
     console.log("[Fawn] === START ===");
     console.log("[Fawn] Type:", type);
@@ -259,6 +260,8 @@ async function drivePlot(type) {
 
     try {
         const context = getContext();
+        // Получаем ID текущего персонажа
+        const charId = context.characterId;
         const msgCount = extension_settings[extensionName].messageCount || 15;
 
         console.log("[Fawn] Got context, messages:", context.chat ? context.chat.length : 0);
@@ -268,10 +271,19 @@ async function drivePlot(type) {
             return;
         }
 
-        // Берём сообщения и сокращаем длинные
+        // 1. ПОЛУЧАЕМ ДАННЫЕ ПЕРСОНАЖА (чтобы "Assistant" знал, о ком речь)
+        // Мы берем description и personality из глобального объекта characters (стандарт ST)
+        let charInfo = "";
+        if (charId !== undefined && context.characters && context.characters[charId]) {
+            const char = context.characters[charId];
+            charInfo = `CHARACTER NAME: ${char.name}\nCHARACTER DESCRIPTION: ${char.description}\nPERSONALITY: ${char.personality}\n`;
+        }
+
+        // Берём сообщения
         const chatHistory = context.chat.slice(-msgCount).map(function(m) {
             const msg = m.mes || "";
-            const short = msg.length > 200 ? msg.substring(0, 200) + "..." : msg;
+            // Чуть уменьшаем лимит на сообщение, чтобы не перегружать контекст
+            const short = msg.length > 300 ? msg.substring(0, 300) + "..." : msg;
             return (m.name || 'User') + ': ' + short;
         }).join('\n');
 
@@ -279,62 +291,72 @@ async function drivePlot(type) {
             ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
-        // Короткий промпт
-        const finalPrompt = instruction + "\n\nStory context:\n" + chatHistory + "\n\nWrite a brief OOC direction (2-3 sentences):";
+        // 2. ФОРМИРУЕМ НОВЫЙ ПРОМПТ
+        // Мы скармливаем описание персонажа как "Справочную информацию", а не как "Роль"
+        const finalPrompt = `
+### INSTRUCTION:
+${instruction}
+
+### STORY DATA:
+${charInfo}
+
+### RECENT CHAT HISTORY:
+${chatHistory}
+
+### RESPONSE (Write ONLY the OOC direction, 2-3 sentences):
+(OOC:`;
 
         console.log("[Fawn] Sending request...");
-        console.log("[Fawn] Prompt length:", finalPrompt.length);
 
-        // Правильный вызов с объектом!
+        // 3. ОТПРАВЛЯЕМ ЗАПРОС С ПЕРЕОПРЕДЕЛЕНИЕМ СИСТЕМНОГО ПРОМПТА
         const response = await generateQuietPrompt({
             prompt: finalPrompt,
             quietToLoud: false,
-            skipWIAN: true,
+            skipWIAN: true, // Пропускаем автоматическую вставку World Info (мы добавили важное вручную)
             quietImage: null,
             quietName: null,
+            // ВАЖНО: Переопределяем роль модели. Теперь это не персонаж, а сценарист.
+            systemPrompt: "You are a creative writing assistant and plot director. You analyze the story and suggest plot progressions. You are NOT the character.",
+            // ВАЖНО: Ограничиваем длину ответа для скорости (около 100 токенов)
+            max_tokens: 150, 
+            min_tokens: 10
         });
 
-        console.log("[Fawn] === RESPONSE ===");
-        console.log("[Fawn] typeof:", typeof response);
-        console.log("[Fawn] value:", response);
+        console.log("[Fawn] === RESPONSE RAW ===");
+        console.log(response);
 
         let text = "";
 
-        if (typeof response === "string" && response.length > 0) {
+        // Обработка разных форматов ответа (зависит от API)
+        if (typeof response === "string") {
             text = response;
-            console.log("[Fawn] Got string response");
         } else if (response && typeof response === "object") {
-            if (response.choices && response.choices[0]) {
-                if (response.choices[0].message && response.choices[0].message.content) {
-                    text = response.choices[0].message.content;
-                } else if (response.choices[0].text) {
-                    text = response.choices[0].text;
-                }
-            } else if (response.content) {
-                text = response.content;
-            } else if (response.text) {
-                text = response.text;
-            }
-            console.log("[Fawn] Extracted from object:", text ? "success" : "failed");
+             // Пытаемся достать текст из разных полей, которые ST может вернуть
+            text = response.text || response.content || (response.choices && response.choices[0] && (response.choices[0].message?.content || response.choices[0].text)) || "";
         }
 
-        // Чистим от think тегов
+        // Чистим мусор
         if (text) {
             text = text
-                .replace(/<think>[\s\S]*?<\/think>/gi, '')
-                .replace(/<think>[\s\S]*/gi, '')
-                .replace(/<\/think>/gi, '')
+                .replace(/<think>[\s\S]*?<\/think>/gi, '') // Удаляем мысли (для моделей типа DeepSeek/R1)
+                .replace(/^[:\s]+/, '') // Удаляем двоеточия в начале
                 .trim();
+            
+            // Если мы начали промпт с "(OOC:", модель может не вернуть эту часть, добавим её если нет
+            if (!text.startsWith("(OOC:") && !text.startsWith("OOC:")) {
+                text = "(OOC: " + text;
+            }
+            if (!text.endsWith(")")) {
+                text = text + ")";
+            }
         }
 
         console.log("[Fawn] Final text:", text);
-        console.log("[Fawn] Length:", text ? text.length : 0);
 
-        if (text && text.length > 10) {
-            console.log("[Fawn] Showing preview!");
+        if (text && text.length > 5) {
             showPreviewPopup(text, type);
         } else {
-            console.log("[Fawn] Empty, showing manual input");
+            console.log("[Fawn] Empty or short response, showing manual input");
             showManualInputPopup(type);
         }
 
