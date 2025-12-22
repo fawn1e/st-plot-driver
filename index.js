@@ -192,7 +192,7 @@ function showOOCPreview(text, type) {
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
-// ========== РУЧНОЙ OOC ==========
+// ========== РУЧНОЙ OOC (ТОЛЬКО ДЛЯ ОШИБОК) ==========
 function showManualOOC(type) {
     const defaultOOC = type === 'timeskip'
         ? '(OOC: Time passes naturally. Describe what happens next.)'
@@ -209,7 +209,7 @@ function showManualOOC(type) {
             <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:15px 0; padding:12px; border:2px solid var(--SmartThemeBorderColor); border-radius:8px; background:var(--SmartThemeBlurTintColor); color:var(--SmartThemeBodyColor); resize:vertical;">${defaultOOC}</textarea>
             <div style="display:flex; gap:10px; justify-content:center;">
                 <button id="fawn-apply-manual" class="menu_button" style="background:var(--SmartThemeQuoteColor);">✅ Применить OOC</button>
-                <button id="fawn-regen" class="menu_button">🔄 Попробовать снова</button>
+                <button id="fawn-try-again" class="menu_button">🔄 Попробовать снова</button>
             </div>
         </div>
     `;
@@ -224,9 +224,9 @@ function showManualOOC(type) {
         }
     });
 
-    document.getElementById("fawn-regen").addEventListener("click", function() {
+    document.getElementById("fawn-try-again").addEventListener("click", function() {
         closePopup();
-        setTimeout(() => drivePlot(lastType), 100);
+        setTimeout(() => drivePlot(type), 100);
     });
 
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
@@ -283,24 +283,31 @@ OOC:`;
         const response = await generateQuietPrompt(oocPrompt, false, false);
         let oocText = extractOOC(response);
 
-        if (oocText && !oocText.includes('OOC:')) {
+        if (!oocText || oocText.trim().length < 5) {
+            toastr.warning("OOC не сгенерировался 😅 Попробуй вручную!");
+            showManualOOC(type);
+            return;
+        }
+
+        if (oocText && !oocText.includes('OOC:') && !oocText.includes('(OOC:')) {
             oocText = `(OOC: ${oocText.trim()})`;
         }
 
-        if (oocText?.length > 5) {
+        // Проверяем, что oocText действительно содержит OOC направление
+        if (oocText && oocText.length > 10 && !oocText.includes('undefined')) {
             // Сначала сохраняем OOC
             lastGeneratedOOC = { text: oocText, type: type };
             // Затем показываем превью
             showOOCPreview(oocText, type);
         } else {
-            toastr.warning("OOC не сгенерировался 😅");
-            // Не показываем ручной ввод автоматически
+            toastr.warning("OOC не сгенерировался 😅 Попробуй вручную!");
+            showManualOOC(type);
         }
 
     } catch (error) {
         console.error(' Fawn: Error:', error);
         toastr.error("Ошибка генерации OOC");
-        // Не показываем ручной ввод автоматически
+        showManualOOC(type);
     } finally {
         isGenerating = false;
         const icon = document.querySelector("#fawn-plot-btn i");
@@ -321,6 +328,55 @@ function showLastOOC() {
     }
 }
 
+// ========== РУЧНОЙ ВВОД OOC (ОТДЕЛЬНАЯ ФУНКЦИЯ) ==========
+function showManualInputPopup() {
+    closePopup();
+
+    const popup = document.createElement("div");
+    popup.id = "fawn-popup";
+    popup.innerHTML = `
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); border:2px solid var(--SmartThemeBorderColor); border-radius:15px; padding:20px; z-index:99999; width:500px; max-width:90%;">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:20px; text-align:center; margin-bottom:20px;">
+                ✍️ Ручной ввод OOC
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">Тип OOC:</label>
+                <select id="fawn-manual-type" style="width:100%; padding:10px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; color:var(--SmartThemeBodyColor);">
+                    <option value="timeskip">🩰 Time Skip</option>
+                    <option value="twist">🥀 Plot Twist</option>
+                </select>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="color:var(--SmartThemeQuoteColor); display:block; margin-bottom:8px;">OOC текст:</label>
+                <textarea id="fawn-manual-text" style="width:100%; height:120px; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:12px; color:var(--SmartThemeBodyColor); resize:vertical;" placeholder="(OOC: Ваш текст здесь)"></textarea>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button id="fawn-manual-apply" class="menu_button" style="background:var(--SmartThemeQuoteColor);">✅ Применить OOC</button>
+                <button id="fawn-manual-cancel" class="menu_button">❌ Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    document.getElementById("fawn-manual-apply").addEventListener("click", function() {
+        const oocText = document.getElementById("fawn-manual-text").value.trim();
+        const oocType = document.getElementById("fawn-manual-type").value;
+        
+        if (oocText) {
+            addPlotPrompt(oocText);
+            // Сохраняем как последний OOC
+            lastGeneratedOOC = { text: oocText, type: oocType };
+            closePopup();
+            toastr.success("OOC применен вручную! 🩰");
+            updateMenuState();
+        }
+    });
+
+    document.getElementById("fawn-manual-cancel").addEventListener("click", closePopup);
+    document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
+}
+
 // ========== ИЗВЛЕЧЕНИЕ OOC ==========
 function extractOOC(response) {
     let text = '';
@@ -337,8 +393,12 @@ function extractOOC(response) {
         text = response.text;
     }
 
+    if (!text) {
+        return '';
+    }
+
     text = text
-        ?.replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .replace(/<\/?think[^>]*>/gi, '')
         .replace(/^\s*\n/gm, '')
         .trim();
@@ -357,7 +417,7 @@ function extractOOC(response) {
         }
     }
 
-    return text;
+    return text || '';
 }
 
 // ========== ИСПРАВЛЕННАЯ КНОПКА И МЕНЮ ==========
@@ -444,6 +504,7 @@ function addFawnMenu() {
         <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:4px; margin:2px 0;">🥀 Plot Twist</div>
         <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeQuoteColor); border-radius:4px; margin:2px 0; display:none; font-weight:bold;">✨ Последний OOC</div>
         <hr style="border:none; border-top:1px solid var(--SmartThemeBorderColor); margin:5px 0;">
+        <div class="fawn-option" data-action="manual" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.8; border-radius:4px; margin:2px 0;">✍️ Ручной ввод OOC</div>
         <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); opacity:0.8; border-radius:4px; margin:2px 0;">⚙️ Настройки</div>
     `;
 
@@ -482,6 +543,8 @@ function addFawnMenu() {
             
             if (action === "settings") {
                 showSettingsPopup();
+            } else if (action === "manual") {
+                showManualInputPopup();
             } else if (action === "lastooc") {
                 showLastOOC();
             } else {
@@ -529,9 +592,7 @@ jQuery(() => {
     loadSettings();
     
     // Убедимся, что lastGeneratedOOC инициализирован как null
-    if (typeof lastGeneratedOOC === 'undefined') {
-        lastGeneratedOOC = null;
-    }
+    lastGeneratedOOC = null;
     
     // Создаем кнопку при загрузке
     setTimeout(() => {
