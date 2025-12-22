@@ -91,49 +91,53 @@ function showSettingsPopup() {
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div id="fawn-popup-bg" class="fawn-popup-bg"></div>
-        <div class="fawn-popup-container">
-            <div class="fawn-popup-header">
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); backdrop-filter:blur(10px); border:1px solid var(--SmartThemeBorderColor); border-radius:12px; padding:20px; z-index:99999; width:500px; max-width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:18px; font-weight:600; text-align:center; margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <i class="fa-solid fa-gear"></i>
                 <span>Fawn's Plot Driver Settings</span>
             </div>
-            <div class="fawn-input-group">
-                <label class="fawn-label">
-                    <i class="fa-solid fa-clock"></i>
-                    Time Skip Prompt:
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeBodyColor); display:block; margin-bottom:8px; font-weight:500; font-size:14px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-hourglass-half" style="color:var(--SmartThemeQuoteColor);"></i>
+                    <span>Time Skip Prompt:</span>
                 </label>
-                <textarea id="fawn-set-timeskip" class="fawn-textarea">${s.timeskipPrompt}</textarea>
+                <textarea id="fawn-set-timeskip" style="width:100%; height:80px; background:var(--SmartThemeInputBg); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical; font-family:monospace; font-size:13px;"></textarea>
             </div>
-            <div class="fawn-input-group">
-                <label class="fawn-label">
-                    <i class="fa-solid fa-bolt"></i>
-                    Plot Twist Prompt:
+            <div style="margin-bottom:20px;">
+                <label style="color:var(--SmartThemeBodyColor); display:block; margin-bottom:8px; font-weight:500; font-size:14px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-bolt" style="color:var(--SmartThemeQuoteColor);"></i>
+                    <span>Plot Twist Prompt:</span>
                 </label>
-                <textarea id="fawn-set-twist" class="fawn-textarea">${s.twistPrompt}</textarea>
+                <textarea id="fawn-set-twist" style="width:100%; height:80px; background:var(--SmartThemeInputBg); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:10px; color:var(--SmartThemeBodyColor); resize:vertical; font-family:monospace; font-size:13px;"></textarea>
             </div>
-            <div class="fawn-input-group">
-                <label class="fawn-label">
-                    <i class="fa-solid fa-message"></i>
-                    Message Count: <span id="fawn-msg-count-label" class="fawn-count-label">${s.messageCount}</span>
+            <div style="margin-bottom:25px;">
+                <label style="color:var(--SmartThemeBodyColor); display:block; margin-bottom:8px; font-weight:500; font-size:14px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-message" style="color:var(--SmartThemeQuoteColor);"></i>
+                    <span>Message Count: <span id="fawn-msg-count-label" style="font-weight:bold;">${s.messageCount}</span></span>
                 </label>
-                <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" class="fawn-slider">
+                <input type="range" id="fawn-set-msgcount" min="5" max="50" value="${s.messageCount}" style="width:100%; accent-color:var(--SmartThemeQuoteColor);">
             </div>
-            <div class="fawn-button-group">
-                <button id="fawn-set-save" class="fawn-button fawn-button-primary">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    Save
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; border-top:1px solid var(--SmartThemeBorderColor); padding-top:20px;">
+                <button id="fawn-set-save" class="menu_button" style="display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-save"></i>
+                    <span>Save</span>
                 </button>
-                <button id="fawn-set-reset" class="fawn-button fawn-button-secondary">
+                <button id="fawn-set-reset" class="menu_button" style="display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-rotate-left"></i>
-                    Reset
+                    <span>Reset</span>
                 </button>
-                <button id="fawn-set-close" class="fawn-button fawn-button-secondary">
+                <button id="fawn-set-close" class="menu_button" style="display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-xmark"></i>
-                    Close
+                    <span>Close</span>
                 </button>
             </div>
         </div>
     `;
+    
+    document.getElementById("fawn-set-timeskip").value = s.timeskipPrompt;
+    document.getElementById("fawn-set-twist").value = s.twistPrompt;
+    
     document.body.appendChild(popup);
 
     document.getElementById("fawn-set-msgcount").addEventListener("input", function(e) {
@@ -145,7 +149,7 @@ function showSettingsPopup() {
         extension_settings[extensionName].twistPrompt = document.getElementById("fawn-set-twist").value;
         extension_settings[extensionName].messageCount = parseInt(document.getElementById("fawn-set-msgcount").value);
         saveSettings();
-        toastr.success("Settings saved successfully!");
+        toastr.success("Settings saved!");
         closePopup();
     });
 
@@ -154,51 +158,51 @@ function showSettingsPopup() {
         document.getElementById("fawn-set-twist").value = defaultSettings.twistPrompt;
         document.getElementById("fawn-set-msgcount").value = defaultSettings.messageCount;
         document.getElementById("fawn-msg-count-label").textContent = defaultSettings.messageCount;
-        toastr.info("Settings reset to defaults!");
+        toastr.info("Reset to defaults!");
     });
 
     document.getElementById("fawn-set-close").addEventListener("click", closePopup);
     document.getElementById("fawn-popup-bg").addEventListener("click", closePopup);
 }
 
-// ========== ПРЕВЬЮ OOC ==========
+// ========== ПЕРЕПИСАННОЕ ПРЕВЬЮ - ТОЛЬКО OOC ==========
 function showOOCPreview(text, type) {
     closePopup();
 
-    const title = type === 'timeskip' ? 
-        '<i class="fa-solid fa-clock"></i> Time Skip OOC' : 
-        '<i class="fa-solid fa-bolt"></i> Plot Twist OOC';
+    const title = type === 'timeskip' 
+        ? '<i class="fa-solid fa-hourglass-half"></i> Time Skip OOC' 
+        : '<i class="fa-solid fa-bolt"></i> Plot Twist OOC';
 
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div id="fawn-popup-bg" class="fawn-popup-bg"></div>
-        <div class="fawn-popup-container fawn-ooc-preview">
-            <div class="fawn-popup-header">
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); backdrop-filter:blur(10px); border:1px solid var(--SmartThemeBorderColor); border-radius:12px; padding:20px; z-index:99999; width:500px; max-width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:18px; text-align:center; margin-bottom:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
                 ${title}
             </div>
-            <div class="fawn-preview-subtitle">
-                AI-generated OOC direction. Edit if needed:
+            <div style="color:var(--SmartThemeBodyColor); text-align:center; margin-bottom:15px; opacity:0.8; font-size:13px;">
+                AI-generated direction. Edit if needed:
             </div>
-            <div class="fawn-ooc-textarea-container">
-                <textarea id="fawn-ooc-text" class="fawn-ooc-textarea">${text}</textarea>
+            <div style="background:var(--SmartThemeInputBg); border:1px solid var(--SmartThemeBorderColor); border-radius:8px; padding:15px; margin-bottom:20px;">
+                <textarea id="fawn-ooc-text" style="width:100%; height:100px; background:transparent; border:none; color:var(--SmartThemeBodyColor); font-family:monospace; font-size:13px; resize:vertical; outline:none; line-height:1.4;">${text}</textarea>
             </div>
-            <div class="fawn-button-group">
-                <button id="fawn-apply-ooc" class="fawn-button fawn-button-primary">
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                <button id="fawn-apply-ooc" class="menu_button" style="display:flex; align-items:center; gap:6px; background:var(--SmartThemeQuoteColor); color:var(--SmartThemeBlurTintColor);">
                     <i class="fa-solid fa-check"></i>
-                    Apply OOC
+                    <span>Apply OOC</span>
                 </button>
-                <button id="fawn-regen-ooc" class="fawn-button fawn-button-secondary">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    Regenerate
+                <button id="fawn-regen-ooc" class="menu_button" style="display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Regenerate</span>
                 </button>
-                <button id="fawn-cancel" class="fawn-button fawn-button-secondary">
+                <button id="fawn-cancel" class="menu_button" style="display:flex; align-items:center; gap:6px;">
                     <i class="fa-solid fa-xmark"></i>
-                    Cancel
+                    <span>Cancel</span>
                 </button>
             </div>
-            <div class="fawn-preview-note">
-                Will be applied as a system instruction to the bot
+            <div style="font-size:11px; color:var(--SmartThemeBodyColor); opacity:0.6; text-align:center; margin-top:12px;">
+                Will be applied as system instruction
             </div>
         </div>
     `;
@@ -209,7 +213,7 @@ function showOOCPreview(text, type) {
         if (finalOOC) {
             addPlotPrompt(finalOOC);
             closePopup();
-            toastr.success(`${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} OOC applied! Send a message to the bot.`);
+            toastr.success(`OOC ${type === 'timeskip' ? 'Time Skip' : 'Plot Twist'} applied!`);
         }
     });
 
@@ -230,27 +234,27 @@ function showManualOOC(type) {
 
     closePopup();
 
-    const title = type === 'timeskip' ? 
-        '<i class="fa-solid fa-clock"></i> Manual Time Skip' : 
-        '<i class="fa-solid fa-bolt"></i> Manual Plot Twist';
+    const title = type === 'timeskip'
+        ? '<i class="fa-solid fa-hourglass-half"></i> Manual Time Skip'
+        : '<i class="fa-solid fa-bolt"></i> Manual Plot Twist';
 
     const popup = document.createElement("div");
     popup.id = "fawn-popup";
     popup.innerHTML = `
-        <div id="fawn-popup-bg" class="fawn-popup-bg"></div>
-        <div class="fawn-popup-container">
-            <div class="fawn-popup-header">
+        <div id="fawn-popup-bg" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99998;"></div>
+        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--SmartThemeBlurTintColor); backdrop-filter:blur(10px); border:1px solid var(--SmartThemeBorderColor); border-radius:12px; padding:20px; z-index:99999; width:450px; max-width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="color:var(--SmartThemeQuoteColor); font-size:16px; text-align:center; margin-bottom:15px; display:flex; align-items:center; justify-content:center; gap:6px;">
                 ${title}
             </div>
-            <textarea id="fawn-manual-ooc" class="fawn-textarea fawn-manual-textarea">${defaultOOC}</textarea>
-            <div class="fawn-button-group">
-                <button id="fawn-apply-manual" class="fawn-button fawn-button-primary">
+            <textarea id="fawn-manual-ooc" style="width:100%; height:100px; margin:15px 0; padding:12px; border:1px solid var(--SmartThemeBorderColor); border-radius:8px; background:var(--SmartThemeInputBg); color:var(--SmartThemeBodyColor); resize:vertical; font-family:monospace; font-size:13px;">${defaultOOC}</textarea>
+            <div style="display:flex; gap:8px; justify-content:center;">
+                <button id="fawn-apply-manual" class="menu_button" style="display:flex; align-items:center; gap:6px; background:var(--SmartThemeQuoteColor); color:var(--SmartThemeBlurTintColor);">
                     <i class="fa-solid fa-check"></i>
-                    Apply OOC
+                    <span>Apply OOC</span>
                 </button>
-                <button id="fawn-regen" class="fawn-button fawn-button-secondary">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    Try AI Generation
+                <button id="fawn-regen" class="menu_button" style="display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Regenerate</span>
                 </button>
             </div>
         </div>
@@ -262,7 +266,7 @@ function showManualOOC(type) {
         if (oocText) {
             addPlotPrompt(oocText);
             closePopup();
-            toastr.success("Manual OOC applied successfully!");
+            toastr.success("Manual OOC applied!");
         }
     });
 
@@ -287,7 +291,7 @@ async function drivePlot(type) {
 
     const icon = document.querySelector("#fawn-plot-btn i");
     if (icon) {
-        icon.className = "fa-solid fa-pen-nib fa-spin";
+        icon.className = "fa-solid fa-spinner fa-spin";
     }
 
     try {
@@ -334,13 +338,13 @@ OOC:`;
             updateMenuState();
             showOOCPreview(oocText, type);
         } else {
-            toastr.warning("Failed to generate OOC content");
+            toastr.warning("Failed to generate OOC");
             showManualOOC(type);
         }
 
     } catch (error) {
-        console.error('Fawn Plot Driver Error:', error);
-        toastr.error("Error generating OOC");
+        console.error('Fawn: Error:', error);
+        toastr.error("OOC generation failed");
         showManualOOC(type);
     } finally {
         isGenerating = false;
@@ -356,7 +360,7 @@ function showLastOOC() {
     if (lastGeneratedOOC) {
         showOOCPreview(lastGeneratedOOC.text, lastGeneratedOOC.type);
     } else {
-        toastr.info("No saved OOC found. Generate a new one first!");
+        toastr.info("No saved OOC found!");
     }
 }
 
@@ -399,319 +403,6 @@ function extractOOC(response) {
     return text;
 }
 
-// ========== ДОБАВИТЬ СТИЛИ ==========
-function addFawnStyles() {
-    if (document.getElementById('fawn-styles')) return;
-    
-    const styles = document.createElement('style');
-    styles.id = 'fawn-styles';
-    styles.textContent = `
-        /* Основные стили */
-        #fawn-plot-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--SmartThemeQuoteColor);
-            background: var(--SmartThemeBlurTintColor);
-            border: 1px solid var(--SmartThemeBorderColor);
-            transition: all 0.2s ease;
-            font-size: 16px;
-            margin: 0 4px;
-            flex-shrink: 0;
-        }
-        
-        #fawn-plot-btn:hover {
-            background: var(--SmartThemeBorderColor);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        #fawn-plot-btn i {
-            transition: transform 0.2s ease;
-        }
-        
-        /* Меню */
-        #fawn-menu {
-            position: fixed;
-            background: var(--SmartThemeBlurTintColor);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--SmartThemeBorderColor);
-            border-radius: 8px;
-            padding: 6px;
-            z-index: 10000;
-            min-width: 200px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: none;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        #fawn-menu.fawn-menu-visible {
-            display: block;
-        }
-        
-        .fawn-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            cursor: pointer;
-            color: var(--SmartThemeBodyColor);
-            border-radius: 6px;
-            margin: 2px 0;
-            transition: all 0.15s ease;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-        
-        .fawn-option:hover {
-            background: var(--SmartThemeQuoteColor);
-            color: white;
-            padding-left: 16px;
-        }
-        
-        .fawn-option i {
-            width: 16px;
-            text-align: center;
-        }
-        
-        /* Popup */
-        .fawn-popup-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(2px);
-            z-index: 9998;
-        }
-        
-        .fawn-popup-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--SmartThemeBlurTintColor);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--SmartThemeBorderColor);
-            border-radius: 12px;
-            padding: 24px;
-            z-index: 9999;
-            width: 500px;
-            max-width: 90vw;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        }
-        
-        .fawn-popup-header {
-            color: var(--SmartThemeQuoteColor);
-            font-size: 18px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .fawn-input-group {
-            margin-bottom: 20px;
-        }
-        
-        .fawn-label {
-            color: var(--SmartThemeBodyColor);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .fawn-textarea {
-            width: 100%;
-            background: var(--SmartThemeBlurTintColor);
-            border: 1px solid var(--SmartThemeBorderColor);
-            border-radius: 8px;
-            padding: 12px;
-            color: var(--SmartThemeBodyColor);
-            resize: vertical;
-            min-height: 80px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-        
-        .fawn-textarea:focus {
-            outline: none;
-            border-color: var(--SmartThemeQuoteColor);
-            box-shadow: 0 0 0 2px rgba(var(--SmartThemeQuoteColor-rgb, 100, 100, 100), 0.1);
-        }
-        
-        .fawn-slider {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--SmartThemeBorderColor);
-            outline: none;
-            -webkit-appearance: none;
-        }
-        
-        .fawn-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--SmartThemeQuoteColor);
-            cursor: pointer;
-            border: 2px solid var(--SmartThemeBlurTintColor);
-        }
-        
-        .fawn-count-label {
-            color: var(--SmartThemeQuoteColor);
-            font-weight: 600;
-            margin-left: 4px;
-        }
-        
-        /* Кнопки */
-        .fawn-button-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        
-        .fawn-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            min-width: 100px;
-        }
-        
-        .fawn-button-primary {
-            background: var(--SmartThemeQuoteColor);
-            color: white;
-        }
-        
-        .fawn-button-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        .fawn-button-secondary {
-            background: var(--SmartThemeBorderColor);
-            color: var(--SmartThemeBodyColor);
-        }
-        
-        .fawn-button-secondary:hover {
-            background: var(--SmartThemeBodyColor);
-            color: var(--SmartThemeBlurTintColor);
-        }
-        
-        /* OOC Preview */
-        .fawn-ooc-preview {
-            width: 550px;
-        }
-        
-        .fawn-preview-subtitle {
-            color: var(--SmartThemeBodyColor);
-            text-align: center;
-            margin-bottom: 16px;
-            opacity: 0.8;
-            font-size: 13px;
-        }
-        
-        .fawn-ooc-textarea-container {
-            background: var(--SmartThemeBlurTintColor);
-            border: 1px solid var(--SmartThemeQuoteColor);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .fawn-ooc-textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: var(--SmartThemeQuoteColor);
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 13px;
-            resize: vertical;
-            min-height: 100px;
-            line-height: 1.5;
-            outline: none;
-        }
-        
-        .fawn-preview-note {
-            font-size: 11px;
-            color: var(--SmartThemeBodyColor);
-            opacity: 0.6;
-            text-align: center;
-            margin-top: 10px;
-        }
-        
-        .fawn-manual-textarea {
-            margin: 20px 0;
-            min-height: 100px;
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .fawn-popup-container {
-                padding: 16px;
-                width: 95vw;
-            }
-            
-            .fawn-button {
-                min-width: 80px;
-                padding: 8px 16px;
-                font-size: 13px;
-            }
-            
-            #fawn-menu {
-                min-width: 180px;
-            }
-        }
-        
-        /* Анимации */
-        @keyframes fawn-fadeIn {
-            from { opacity: 0; transform: translate(-50%, -48%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
-        }
-        
-        .fawn-popup-container {
-            animation: fawn-fadeIn 0.2s ease-out;
-        }
-        
-        /* Анимация для меню */
-        @keyframes fawn-menu-fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        #fawn-menu.fawn-menu-visible {
-            animation: fawn-menu-fadeIn 0.15s ease-out;
-        }
-    `;
-    
-    document.head.appendChild(styles);
-}
-
 // ========== ИСПРАВЛЕННАЯ КНОПКА И МЕНЮ ==========
 function addFawnMenu() {
     if (document.getElementById("fawn-plot-btn")) return true;
@@ -722,78 +413,126 @@ function addFawnMenu() {
 
     if (!container) return false;
 
-    // Добавляем стили
-    addFawnStyles();
-
-    // Кнопка (основная иконка)
-    const btn = document.createElement("div");
+    // Создаем кнопку
+    const btn = document.createElement("button");
     btn.id = "fawn-plot-btn";
-    btn.title = "Fawn's Plot Driver - Manage story progression";
+    btn.title = "Fawn's Plot Driver";
     btn.innerHTML = '<i class="fa-solid fa-star"></i>';
-    btn.setAttribute("aria-label", "Plot Driver Menu");
+    btn.style.cssText = `
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin: 0 4px;
+        padding: 0;
+        border: 1px solid var(--SmartThemeBorderColor);
+        border-radius: 8px;
+        background: var(--SmartThemeInputBg);
+        color: var(--SmartThemeBodyColor);
+        font-size: 16px;
+        transition: all 0.2s ease;
+        position: relative;
+        z-index: 1000;
+    `;
+
+    btn.addEventListener("mouseenter", function() {
+        this.style.background = "var(--SmartThemeQuoteColor)";
+        this.style.color = "var(--SmartThemeBlurTintColor)";
+        this.style.borderColor = "var(--SmartThemeQuoteColor)";
+        this.style.transform = "translateY(-1px)";
+    });
     
-    // Меню
+    btn.addEventListener("mouseleave", function() {
+        this.style.background = "var(--SmartThemeInputBg)";
+        this.style.color = "var(--SmartThemeBodyColor)";
+        this.style.borderColor = "var(--SmartThemeBorderColor)";
+        this.style.transform = "translateY(0)";
+    });
+
+    // Создаем меню
     const menu = document.createElement("div");
     menu.id = "fawn-menu";
-    menu.setAttribute("role", "menu");
-    menu.setAttribute("aria-hidden", "true");
+    menu.style.cssText = `
+        display: none;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        margin-bottom: 8px;
+        background: var(--SmartThemeBlurTintColor);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--SmartThemeBorderColor);
+        border-radius: 8px;
+        padding: 6px 0;
+        z-index: 1001;
+        min-width: 160px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        max-height: 300px;
+        overflow-y: auto;
+    `;
+    
     menu.innerHTML = `
-        <div class="fawn-option" data-action="timeskip" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-clock"></i>
+        <div class="fawn-option" data-action="timeskip" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:0; display:flex; align-items:center; gap:8px; font-size:14px; transition:all 0.15s;">
+            <i class="fa-solid fa-hourglass-half" style="width:16px; text-align:center;"></i>
             <span>Time Skip</span>
         </div>
-        <div class="fawn-option" data-action="twist" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-bolt"></i>
+        <div class="fawn-option" data-action="twist" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:0; display:flex; align-items:center; gap:8px; font-size:14px; transition:all 0.15s;">
+            <i class="fa-solid fa-bolt" style="width:16px; text-align:center;"></i>
             <span>Plot Twist</span>
         </div>
-        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" role="menuitem" tabindex="-1" style="display:none;">
-            <i class="fa-solid fa-sparkles"></i>
-            <span>Last Generated OOC</span>
+        <div id="fawn-last-ooc-option" class="fawn-option" data-action="lastooc" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeQuoteColor); border-radius:0; display:none; align-items:center; gap:8px; font-size:14px; font-weight:500; transition:all 0.15s;">
+            <i class="fa-solid fa-clock-rotate-left" style="width:16px; text-align:center;"></i>
+            <span>Last OOC</span>
         </div>
-        <hr style="border:none; height:1px; background:var(--SmartThemeBorderColor); margin:6px 0;">
-        <div class="fawn-option" data-action="settings" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-gear"></i>
+        <div style="border-top:1px solid var(--SmartThemeBorderColor); margin:6px 0;"></div>
+        <div class="fawn-option" data-action="settings" style="padding:8px 12px; cursor:pointer; color:var(--SmartThemeBodyColor); border-radius:0; display:flex; align-items:center; gap:8px; font-size:14px; transition:all 0.15s;">
+            <i class="fa-solid fa-gear" style="width:16px; text-align:center;"></i>
             <span>Settings</span>
         </div>
     `;
 
-    // Вставляем кнопку в контейнер формы
+    // Вставляем кнопку
     container.insertBefore(btn, container.firstChild);
+    
+    // Добавляем меню в body для корректного позиционирования
     document.body.appendChild(menu);
 
-    // Функция для показа/скрытия меню
-    function toggleMenu() {
-        const isVisible = menu.classList.contains("fawn-menu-visible");
+    // Функция для обновления позиции меню
+    const updateMenuPosition = () => {
+        const btnRect = btn.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
         
-        if (isVisible) {
-            menu.classList.remove("fawn-menu-visible");
-            menu.setAttribute("aria-hidden", "true");
-        } else {
-            closePopup();
-            updateMenuState();
-            
-            // Позиционируем меню
-            const btnRect = btn.getBoundingClientRect();
-            menu.style.left = btnRect.left + "px";
-            menu.style.top = (btnRect.top + btnRect.height + 5) + "px";
-            
-            // Показываем меню
-            menu.classList.add("fawn-menu-visible");
-            menu.setAttribute("aria-hidden", "false");
-            
-            // Фокус на первом элементе меню
-            setTimeout(() => {
-                const firstOption = menu.querySelector('.fawn-option');
-                if (firstOption) firstOption.focus();
-            }, 10);
+        let left = btnRect.left;
+        let bottom = window.innerHeight - btnRect.top + 8;
+        
+        // Проверяем, чтобы меню не выходило за правый край
+        if (left + menuRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - menuRect.width - 10;
         }
-    }
+        
+        // Проверяем, чтобы меню не выходило за левый край
+        if (left < 10) {
+            left = 10;
+        }
+        
+        menu.style.left = left + "px";
+        menu.style.bottom = bottom + "px";
+    };
 
     // Обработчик клика по кнопке
     btn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
-        toggleMenu();
+        closePopup();
+        updateMenuState();
+        
+        // Позиционируем меню
+        updateMenuPosition();
+        
+        // Показываем/скрываем меню
+        const isMenuVisible = menu.style.display === "block";
+        menu.style.display = isMenuVisible ? "none" : "block";
     });
 
     // Обработчики для пунктов меню
@@ -801,8 +540,7 @@ function addFawnMenu() {
         opt.addEventListener("click", function(e) {
             e.preventDefault();
             e.stopPropagation();
-            menu.classList.remove("fawn-menu-visible");
-            menu.setAttribute("aria-hidden", "true");
+            menu.style.display = "none";
             const action = this.dataset.action;
             
             if (action === "settings") {
@@ -814,45 +552,36 @@ function addFawnMenu() {
             }
         });
 
-        // Обработка клавиатуры
-        opt.addEventListener("keydown", function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                this.click();
-            } else if (e.key === 'Escape') {
-                menu.classList.remove("fawn-menu-visible");
-                menu.setAttribute("aria-hidden", "true");
-                btn.focus();
-            }
+        opt.addEventListener("mouseenter", function() {
+            this.style.background = "var(--SmartThemeQuoteColor)";
+            this.style.color = "var(--SmartThemeBlurTintColor)";
+        });
+        
+        opt.addEventListener("mouseleave", function() {
+            this.style.background = "";
+            this.style.color = this.dataset.action === "lastooc" ? 
+                "var(--SmartThemeQuoteColor)" : "var(--SmartThemeBodyColor)";
         });
     });
 
     // Закрытие меню при клике вне
     document.addEventListener("click", function(e) {
         if (!btn.contains(e.target) && !menu.contains(e.target)) {
-            menu.classList.remove("fawn-menu-visible");
-            menu.setAttribute("aria-hidden", "true");
+            menu.style.display = "none";
         }
     });
 
-    // Закрытие меню по клавише Escape
-    document.addEventListener("keydown", function(e) {
-        if (e.key === 'Escape' && menu.classList.contains("fawn-menu-visible")) {
-            menu.classList.remove("fawn-menu-visible");
-            menu.setAttribute("aria-hidden", "true");
-            btn.focus();
+    // Обновление позиции при ресайзе и скролле
+    window.addEventListener("resize", function() {
+        if (menu.style.display === "block") {
+            updateMenuPosition();
         }
-    });
-
-    // Закрытие меню при скролле или изменении размера окна
-    window.addEventListener("scroll", function() {
-        menu.classList.remove("fawn-menu-visible");
-        menu.setAttribute("aria-hidden", "true");
     });
     
-    window.addEventListener("resize", function() {
-        menu.classList.remove("fawn-menu-visible");
-        menu.setAttribute("aria-hidden", "true");
+    window.addEventListener("scroll", function() {
+        if (menu.style.display === "block") {
+            updateMenuPosition();
+        }
     });
 
     return true;
@@ -869,10 +598,14 @@ jQuery(() => {
     // Создаем кнопку при загрузке
     setTimeout(() => {
         if (!document.getElementById("fawn-plot-btn")) {
-            const success = addFawnMenu();
-            if (!success) {
-                console.warn("Fawn Plot Driver: Could not find container for button. Retrying...");
-            }
+            addFawnMenu();
         }
     }, 500);
+    
+    // Запасной таймер
+    setTimeout(() => {
+        if (!document.getElementById("fawn-plot-btn")) {
+            addFawnMenu();
+        }
+    }, 2000);
 });
