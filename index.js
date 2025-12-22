@@ -8,7 +8,7 @@ const extensionName = "plot-driver-fawn";
 const defaultSettings = {
     timeskipPrompt: "You are a master story architect. Create a natural time-skip that moves the narrative forward elegantly. Write 2-3 sentences as OOC direction.",
     twistPrompt: "You are a genius narrative stylist. Introduce an unexpected but logical plot twist. Write 2-3 sentences as OOC direction.",
-    messageCount: 15  // ✅ Для getContext(), НЕ автоактивация
+    messageCount: 15  // Для getContext()
 };
 
 if (!extension_settings[extensionName]) {
@@ -16,7 +16,7 @@ if (!extension_settings[extensionName]) {
 }
 
 let lastType = null;
-let isGenerating = false; // 🔒 Блокировка повторных нажатий
+let isGenerating = false;
 let debounceTimer = null;
 
 // ========== СОХРАНИТЬ/ЗАГРУЗИТЬ ==========
@@ -68,9 +68,9 @@ function clearPlotPrompt() {
     );
 }
 
-// ========== ГЕНЕРАЦИЯ OOC (только по кнопкам!) ==========
+// ========== ГЕНЕРАЦИЯ OOC ==========
 function generateOOC(type) {
-    if (isGenerating) return; // Предотвращаем дубли
+    if (isGenerating) return;
     
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -82,10 +82,10 @@ function generateOOC(type) {
             updateButtonState(true);
             console.log(`🩰 Fawn: ${type.toUpperCase()} активирован`);
         }
-    }, 300); // 300мс debounce
+    }, 300);
 }
 
-// ========== СБРОС СОСТОЯНИЯ ==========
+// ========== СБРОС ==========
 function resetState() {
     clearTimeout(debounceTimer);
     if (isGenerating) {
@@ -96,7 +96,7 @@ function resetState() {
     updateButtonState(false);
 }
 
-// ========== ОБНОВИТЬ СОСТОЯНИЕ КНОПОК ==========
+// ========== UPDATE КНОПОК ==========
 function updateButtonState(generating) {
     const timeskipBtn = document.getElementById('fawn-timeskip-btn');
     const twistBtn = document.getElementById('fawn-twist-btn');
@@ -104,16 +104,16 @@ function updateButtonState(generating) {
     if (timeskipBtn) {
         timeskipBtn.disabled = generating;
         timeskipBtn.style.opacity = generating ? '0.5' : '1';
-        timeskipBtn.textContent = generating ? '⏳ OOC...' : (timeskipBtn.dataset.originalText || '⏭️ Timeskip');
+        timeskipBtn.innerHTML = generating ? '⏳ OOC...' : '⏭️ Timeskip';
     }
     if (twistBtn) {
         twistBtn.disabled = generating;
         twistBtn.style.opacity = generating ? '0.5' : '1';
-        twistBtn.textContent = generating ? '⏳ OOC...' : (twistBtn.dataset.originalText || '🔀 Twist');
+        twistBtn.innerHTML = generating ? '⏳ OOC...' : '🔀 Twist';
     }
 }
 
-// ========== ОКНО НАСТРОЕК ==========
+// ========== НАСТРОЙКИ ==========
 function showSettingsPopup() {
     closePopup();
     const s = extension_settings[extensionName];
@@ -134,7 +134,7 @@ function showSettingsPopup() {
             </div>
             
             <div style="margin-bottom:20px;">
-                <label style="display:block;margin-bottom:5px;font-weight:bold;">📊 Сообщений в контексте (getContext):</label>
+                <label style="display:block;margin-bottom:5px;font-weight:bold;">📊 Сообщений в контексте:</label>
                 <input id="msg-count" type="number" min="5" max="50" value="${s.messageCount}" style="width:80px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:4px;padding:6px;font-size:14px;">
             </div>
             
@@ -147,7 +147,6 @@ function showSettingsPopup() {
     document.body.appendChild(popup);
 }
 
-// Глобальные функции для кнопок popup
 window.fawnSaveSettings = function() {
     extension_settings[extensionName].timeskipPrompt = document.getElementById('timeskip-prompt').value;
     extension_settings[extensionName].twistPrompt = document.getElementById('twist-prompt').value;
@@ -159,85 +158,57 @@ window.fawnSaveSettings = function() {
 
 window.fawnClosePopup = closePopup;
 
-// ========== ОСНОВНОЙ ХУК ==========
+// ========== ХУКИ ==========
 eventSource.on(event_types.CHAT_CHANGED, () => {
-    resetState(); // ✅ Только сброс состояния при смене чата
+    resetState();
 });
 
 eventSource.on(event_types.MESSAGE_RECEIVED, (message) => {
-    // ✅ АВТОСБРОС OOC после получения ответа (фикс обрывов)
     setTimeout(() => {
         if (isGenerating) {
             resetState();
         }
-    }, 2000); // 2 сек после ответа
+    }, 2000);
 });
 
-// ========== КНОПКИ ==========
-document.addEventListener('DOMContentLoaded', () => {
+// ========== КНОПКИ (ОРИГИНАЛЬНАЯ ЛОГИКА) ==========
+jQuery(() => {
+    // Settings кнопка (как в оригинале)
+    const settingsBtn = $(`
+        <div class="fa-icon-button settings-button" 
+             style="position: fixed; bottom: 20px; right: 20px; z-index: 10000;"
+             title="Fawn Plot Driver">
+            <i class="fa-solid fa-ballet-positions"></i>
+        </div>
+    `);
+    settingsBtn.on('click', showSettingsPopup);
+    $('body').append(settingsBtn);
+
     // Timeskip кнопка
-    const timeskipBtn = document.createElement('div');
-    timeskipBtn.id = 'fawn-timeskip-btn';
-    timeskipBtn.dataset.originalText = '⏭️ Timeskip';
-    timeskipBtn.innerHTML = '⏭️ Timeskip';
-    timeskipBtn.style.cssText = `
-        position:fixed;bottom:100px;right:20px;
-        background:linear-gradient(135deg,#ff6b6b,#ff8e8e);
-        color:white;font-weight:bold;padding:12px 16px;border-radius:50px;
-        cursor:pointer;font-size:14px;z-index:10000;
-        box-shadow:0 4px 15px rgba(255,107,107,0.4);
-        border:none;transition:all 0.3s ease;
-        user-select:none;
-    `;
-    timeskipBtn.title = "Временной скачок (OOC)";
-    timeskipBtn.onclick = () => generateOOC('timeskip');
-    document.body.appendChild(timeskipBtn);
+    const timeskipBtn = $(`
+        <div id="fawn-timeskip-btn" class="fa-icon-button" 
+             style="position: fixed; bottom: 100px; right: 20px; z-index: 10000; background: linear-gradient(135deg, #ff6b6b, #ff8e8e) !important;"
+             title="Timeskip OOC">⏭️</div>
+    `);
+    timeskipBtn.on('click', () => generateOOC('timeskip'));
+    $('body').append(timeskipBtn);
 
     // Twist кнопка
-    const twistBtn = document.createElement('div');
-    twistBtn.id = 'fawn-twist-btn';
-    twistBtn.dataset.originalText = '🔀 Twist';
-    twistBtn.innerHTML = '🔀 Twist';
-    twistBtn.style.cssText = `
-        position:fixed;bottom:100px;right:140px;
-        background:linear-gradient(135deg,#4ecdc4,#44a08d);
-        color:white;font-weight:bold;padding:12px 16px;border-radius:50px;
-        cursor:pointer;font-size:14px;z-index:10000;
-        box-shadow:0 4px 15px rgba(78,205,196,0.4);
-        border:none;transition:all 0.3s ease;
-        user-select:none;
-    `;
-    twistBtn.title = "Сюжетный твист (OOC)";
-    twistBtn.onclick = () => generateOOC('twist');
-    document.body.appendChild(twistBtn);
-
-    // Settings кнопка
-    const settingsBtn = document.createElement('div');
-    settingsBtn.innerHTML = '🩰';
-    settingsBtn.style.cssText = `
-        position:fixed;bottom:20px;right:20px;
-        background:#9b59b6;color:white;font-size:24px;width:50px;height:50px;
-        border-radius:50%;cursor:pointer;z-index:10000;
-        display:flex;align-items:center;justify-content:center;
-        box-shadow:0 4px 15px rgba(155,89,182,0.4);border:none;
-        transition:all 0.3s ease;
-    `;
-    settingsBtn.title = "Fawn настройки";
-    settingsBtn.onclick = showSettingsPopup;
-    document.body.appendChild(settingsBtn);
+    const twistBtn = $(`
+        <div id="fawn-twist-btn" class="fa-icon-button" 
+             style="position: fixed; bottom: 100px; right: 140px; z-index: 10000; background: linear-gradient(135deg, #4ecdc4, #44a08d) !important;"
+             title="Twist OOC">🔀</div>
+    `);
+    twistBtn.on('click', () => generateOOC('twist'));
+    $('body').append(twistBtn);
 
     loadSettings();
-    console.log("🩰 Fawn: Готов к работе! (только ручные кнопки)");
+    console.log("🩰 Fawn: Готово! Кнопки восстановлены");
 });
 
-// Hover эффекты для кнопок
-document.addEventListener('mouseover', (e) => {
-    if (e.target.id === 'fawn-timeskip-btn' || e.target.id === 'fawn-twist-btn') {
-        e.target.style.transform = 'scale(1.05)';
-    }
-});
-document.addEventListener('mouseout', (e) => {
-    if (e.target.id === 'fawn-timeskip-btn' || e.target.id === 'fawn-twist-btn') {
-        e.target.style.transform = 'scale(1)';
-    }
+// Hover эффекты
+$(document).on('mouseenter', '#fawn-timeskip-btn, #fawn-twist-btn', function() {
+    $(this).css('transform', 'scale(1.05)');
+}).on('mouseleave', '#fawn-timeskip-btn, #fawn-twist-btn', function() {
+    $(this).css('transform', 'scale(1)');
 });
