@@ -1088,6 +1088,7 @@ jQuery(() => {
             addFawnMenu();
         }
         updateMenuState();
+        console.log('Fawn Plot Driver: Initialized');
     }, 500);
     
     setTimeout(() => {
