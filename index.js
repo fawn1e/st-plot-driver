@@ -246,7 +246,6 @@ function showManualInputPopup(type) {
 }
 
 // ========== MAIN FUNCTION ==========
-// ========== MAIN FUNCTION ==========
 async function drivePlot(type) {
     console.log("[Fawn] === START ===");
     console.log("[Fawn] Type:", type);
@@ -260,89 +259,81 @@ async function drivePlot(type) {
 
     try {
         const context = getContext();
-        // Получаем ID текущего персонажа
-        const charId = context.characterId;
         const msgCount = extension_settings[extensionName].messageCount || 15;
-
-        console.log("[Fawn] Got context, messages:", context.chat ? context.chat.length : 0);
 
         if (!context.chat || context.chat.length === 0) {
             toastr.warning("Start a chat first! 💕");
             return;
         }
 
-        // 1. ПОЛУЧАЕМ ДАННЫЕ ПЕРСОНАЖА (чтобы "Assistant" знал, о ком речь)
-        // Мы берем description и personality из глобального объекта characters (стандарт ST)
-        let charInfo = "";
-        if (charId !== undefined && context.characters && context.characters[charId]) {
-            const char = context.characters[charId];
-            charInfo = `CHARACTER NAME: ${char.name}\nCHARACTER DESCRIPTION: ${char.description}\nPERSONALITY: ${char.personality}\n`;
-        }
-
-        // Берём сообщения
-        const chatHistory = context.chat.slice(-msgCount).map(function(m) {
-            const msg = m.mes || "";
-            // Чуть уменьшаем лимит на сообщение, чтобы не перегружать контекст
-            const short = msg.length > 300 ? msg.substring(0, 300) + "..." : msg;
-            return (m.name || 'User') + ': ' + short;
+        // 1. Формируем "чистую" историю чата для контекста
+        // Мы не используем стандартный prompt builder, мы просто берем текст
+        const chatHistory = context.chat.slice(-msgCount).map(m => {
+            let name = m.name || 'User';
+            if (m.is_user) name = 'User'; 
+            // Обрезаем слишком длинные сообщения, чтобы не забивать контекст
+            let content = (m.mes || "").substring(0, 400); 
+            return `${name}: ${content}`;
         }).join('\n');
 
         const instruction = type === 'timeskip'
             ? extension_settings[extensionName].timeskipPrompt
             : extension_settings[extensionName].twistPrompt;
 
-        // 2. ФОРМИРУЕМ НОВЫЙ ПРОМПТ
-        // Мы скармливаем описание персонажа как "Справочную информацию", а не как "Роль"
-        const finalPrompt = `
-### INSTRUCTION:
-${instruction}
+        // 2. Создаем жесткий массив сообщений (Chat Completion format)
+        // Это "секрет", почему STMemoryBooks не ломается. Мы подменяем контекст полностью.
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a plot direction tool. You are NOT a character in the story.
+Your task is to write a brief Out-Of-Character (OOC) direction based on the provided chat history.
+Ignore all previous instructions regarding character persona or roleplay.
+Output ONLY the OOC message.`
+            },
+            {
+                role: 'user',
+                content: `### STORY CONTEXT:\n${chatHistory}\n\n### INSTRUCTION:\n${instruction}\n\n### RESPONSE (2-3 sentences max, OOC format):`
+            }
+        ];
 
-### STORY DATA:
-${charInfo}
+        console.log("[Fawn] Sending structured request...");
 
-### RECENT CHAT HISTORY:
-${chatHistory}
-
-### RESPONSE (Write ONLY the OOC direction, 2-3 sentences):
-(OOC:`;
-
-        console.log("[Fawn] Sending request...");
-
-        // 3. ОТПРАВЛЯЕМ ЗАПРОС С ПЕРЕОПРЕДЕЛЕНИЕМ СИСТЕМНОГО ПРОМПТА
+        // 3. Отправляем запрос
         const response = await generateQuietPrompt({
-            prompt: finalPrompt,
+            messages: messages, // ВАЖНО: передаем массив, а не prompt
+            prompt: null,       // Обнуляем prompt, чтобы ST не добавил его к пресету
+            skipWIAN: true,     // Пропускаем World Info и Author's Note
             quietToLoud: false,
-            skipWIAN: true, // Пропускаем автоматическую вставку World Info (мы добавили важное вручную)
-            quietImage: null,
-            quietName: null,
-            // ВАЖНО: Переопределяем роль модели. Теперь это не персонаж, а сценарист.
-            systemPrompt: "You are a creative writing assistant and plot director. You analyze the story and suggest plot progressions. You are NOT the character.",
-            // ВАЖНО: Ограничиваем длину ответа для скорости (около 100 токенов)
-            max_tokens: 150, 
-            min_tokens: 10
+            max_tokens: 150,    // Решает проблему долгой генерации (пункт 2)
+            temperature: 0.7,
+            skip_name_check: true
         });
 
-        console.log("[Fawn] === RESPONSE RAW ===");
-        console.log(response);
+        console.log("[Fawn] Raw response:", response);
 
         let text = "";
 
-        // Обработка разных форматов ответа (зависит от API)
+        // Обработка ответа (учитываем разные форматы API)
         if (typeof response === "string") {
             text = response;
         } else if (response && typeof response === "object") {
-             // Пытаемся достать текст из разных полей, которые ST может вернуть
-            text = response.text || response.content || (response.choices && response.choices[0] && (response.choices[0].message?.content || response.choices[0].text)) || "";
+            // Пытаемся достать контент из OpenAI-like структуры или Text-completion
+            text = response.choices?.[0]?.message?.content 
+                || response.choices?.[0]?.text 
+                || response.content 
+                || response.text 
+                || "";
         }
 
-        // Чистим мусор
+        // Чистим теги размышлений (DeepSeek, etc) и лишние пробелы
         if (text) {
             text = text
-                .replace(/<think>[\s\S]*?<\/think>/gi, '') // Удаляем мысли (для моделей типа DeepSeek/R1)
-                .replace(/^[:\s]+/, '') // Удаляем двоеточия в начале
+                .replace(/<think>[\s\S]*?<\/think>/gi, '')
+                .replace(/<think>[\s\S]*/gi, '') // Если тег не закрыт
+                .replace(/<\/think>/gi, '')
                 .trim();
             
-            // Если мы начали промпт с "(OOC:", модель может не вернуть эту часть, добавим её если нет
+            // Форматирование
             if (!text.startsWith("(OOC:") && !text.startsWith("OOC:")) {
                 text = "(OOC: " + text;
             }
@@ -356,7 +347,7 @@ ${chatHistory}
         if (text && text.length > 5) {
             showPreviewPopup(text, type);
         } else {
-            console.log("[Fawn] Empty or short response, showing manual input");
+            console.log("[Fawn] Empty response");
             showManualInputPopup(type);
         }
 
@@ -368,7 +359,6 @@ ${chatHistory}
         if (button) {
             button.innerHTML = '<i class="fa-solid fa-star"></i>';
         }
-        console.log("[Fawn] === END ===");
     }
 }
 
