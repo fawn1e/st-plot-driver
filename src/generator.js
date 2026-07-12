@@ -589,6 +589,7 @@ Rules:
 - Use the EXACT category names from the list above
 - Each category must have exactly ${perCategory} items
 - Write concise, ready-to-use event directions
+- Events can't relate to current ungoing events in history, bear in mind that any of it can be pulled at any point of story so they need to stay broad and universal to the setting
 - Do not wrap items in OOC or brackets
 - Every item must be unique
 
@@ -703,6 +704,7 @@ Important formatting rules:
 Rules:
 - categories must be distinct
 - categories should be broad enough for reuse, but specific enough to feel intentional
+- they can't relate to current events in history, bear in mind that any of it can be pulled at any point of story;
 - each category should be suitable for random event generation
 - follow the requested pace and include only desired themes
 - avoid banned themes
@@ -771,7 +773,7 @@ RULES:
 - If timeskip is NOT needed: respond with exactly "NO"
 - If timeskip IS needed: write a natural timeskip OOC direction (2-3 sentences)
 - Format: (OOC: your timeskip direction here)
-- Be natural and fit the narrative
+- Be natural, logical and fit the narrative
 
 Example responses:
 - "NO"
